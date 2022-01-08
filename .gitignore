@@ -1,0 +1,8 @@
+#Debug Folders
+.vs/
+.x64/
+
+#Visual Studio files
+*.idb
+*.pdb
+x64/
