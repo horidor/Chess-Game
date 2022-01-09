@@ -3,7 +3,7 @@
 #include <stack>
 #include "State.hpp"
 
-namespace Sonar
+namespace ChessGUI
 {
 	typedef std::unique_ptr<State> StateRef;
 

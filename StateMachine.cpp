@@ -1,6 +1,6 @@
 #include "StateMachine.hpp"
 
-namespace Sonar
+namespace ChessGUI
 {
 	void StateMachine::AddState(StateRef newState, bool isReplacing)
 	{

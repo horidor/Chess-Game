@@ -6,7 +6,7 @@
 #include "DEFINITIONS.hpp"
 
 
-namespace Sonar
+namespace ChessGUI
 {
 	GameState::GameState(GameDataRef data)
 	{
@@ -20,18 +20,19 @@ namespace Sonar
 		if (this->_data->firsttoPlay == "another")
 		{
 			this->_gameState = STATE_ANOTHER_CHOOSING;
-			this->_playerColor = BLACK_PIECE;
-			this->_anotherColor = WHITE_PIECE;
+			this->_playerColor = BLACK_QUEEN;
+			this->_anotherColor = WHITE_QUEEN;
 		}
 		else if (this->_data->firsttoPlay == "player")
 		{
 			this->_gameState = STATE_PLAYER_CHOOSING;
-			this->_playerColor = WHITE_PIECE;
-			this->_anotherColor = BLACK_PIECE;
+			this->_playerColor = WHITE_QUEEN;
+			this->_anotherColor = BLACK_QUEEN;
 		}
 
 
 		this->ai = std::make_unique<AI>(_data);
+		
 		this->_data->assets.LoadTexture("Pause Button", PAUSE_BUTTON);
 		this->_data->assets.LoadTexture("Grid Sprite", GRID_SPRITE_FILEPATH);
 		this->_data->assets.LoadTexture("Black Tile", BLACK_TILE);
@@ -40,7 +41,7 @@ namespace Sonar
 		this->_data->assets.LoadTexture("Chess Pieces", CHESS_PIECE_ARRAY);
 
 		_ChessPieces = this->_data->assets.GetTexture("Chess Pieces");
-		_ChessPieces.setSmooth(1);
+		_ChessPieces.setSmooth(true);
 
 		_background.setTexture(this->_data->assets.GetTexture("Background"));
 		_pauseButton.setTexture(this->_data->assets.GetTexture("Pause Button"));
@@ -50,14 +51,14 @@ namespace Sonar
 		sf::Vector2i tileMeas(this->_data->assets.GetTexture("Black Tile").getSize().x,
 			this->_data->assets.GetTexture("Black Tile").getSize().y);
 
-		_gridStart.x = SCREEN_WIDTH / 2 - (tileMeas.x * 8) / 2 - 50; _gridStart.y = SCREEN_HEIGHT / 2 - (tileMeas.y * 8) / 2;
-		_gridPos.left = SCREEN_WIDTH / 2 - (tileMeas.x * 8) / 2 - 50; _gridPos.top = SCREEN_HEIGHT / 2 - (tileMeas.y * 8) / 2;
-		_gridPos.width = tileMeas.x * 8;
-		_gridPos.height = tileMeas.y * 8;
+		_gridPos.left = SCREEN_WIDTH / 2 - (tileMeas.x * GRID_SIZE) / 2 - 50; _gridPos.top = SCREEN_HEIGHT / 2 - (tileMeas.y * GRID_SIZE) / 2;
+		_gridPos.width = tileMeas.x * GRID_SIZE;
+		_gridPos.height = tileMeas.y * GRID_SIZE;
 		 
 		
 		InitGridPiece();
-		
+
+		this->chessLogic = std::make_unique<ChessEngine::ChessLogic>(_gridArray);
 		_inputState = true;
 	}
 
@@ -108,9 +109,9 @@ namespace Sonar
 		this->_data->window.draw(this->_background);
 		this->_data->window.draw(this->_pauseButton);
 
-		for (int x = 0; x < 8; x++)
+		for (int x = 0; x < GRID_SIZE; x++)
 		{
-			for (int y = 0; y < 8; y++)
+			for (int y = 0; y < GRID_SIZE; y++)
 			{
 				this->_data->window.draw(this->_gridSelection[x][y]);
 				this->_data->window.draw(this->_gridPieces[x][y]);
@@ -123,18 +124,18 @@ namespace Sonar
 
 	void GameState::InitGridPiece()
 	{
-		sf::Vector2u tempSpriteSize(60, 60);
+		sf::Vector2u tempChessPieceSize(60, 60);
 		char piecesArrangment[8]{ 'R','k','B','Q','K','B','k','R' };
 		bool WhiteOrBlackFlag = true;
-		for (int x = 0; x < 8; x++)
+		for (int x = 0; x < GRID_SIZE; x++)
 		{
 			WhiteOrBlackFlag = !WhiteOrBlackFlag;
-			for (int y = 0; y < 8; y++)
+			for (int y = 0; y < GRID_SIZE; y++)
 			{
 				if (!WhiteOrBlackFlag) _gridSelection[x][y].setTexture(this->_data->assets.GetTexture("White Tile"));
 				else  _gridSelection[x][y].setTexture(this->_data->assets.GetTexture("Black Tile"));
 
-				_gridSelection[x][y].setPosition(_gridStart.x + _gridSelection[x][y].getGlobalBounds().width * y, _gridStart.y + _gridSelection[x][y].getGlobalBounds().height * x);
+				_gridSelection[x][y].setPosition(_gridPos.left + _gridSelection[x][y].getGlobalBounds().width * y, _gridPos.top + _gridSelection[x][y].getGlobalBounds().height * x);
 				WhiteOrBlackFlag = !WhiteOrBlackFlag;
 
 				if (x < 6) _gridArray[x][y] = EMPTY_PIECE;
@@ -148,7 +149,7 @@ namespace Sonar
 					_gridPieces[anotherX][y].setTexture(_ChessPieces);
 
 					sf::IntRect piecePosition;
-					piecePosition.height = piecePosition.width = tempSpriteSize.x;
+					piecePosition.height = piecePosition.width = tempChessPieceSize.x;
 					piecePosition.top = 0;
 
 					if (x == 1) {
@@ -167,8 +168,8 @@ namespace Sonar
 							break;
 						case 'K':
 							piecePosition.left = 60;
-							_gridArray[x][y] = BLACK_PIECE;
-							_gridArray[anotherX][y] = WHITE_PIECE;
+							_gridArray[x][y] = BLACK_KING;
+							_gridArray[anotherX][y] = WHITE_KING;
 							break;
 						case 'R':
 							piecePosition.left = 120;
@@ -193,8 +194,8 @@ namespace Sonar
 					_gridPieces[anotherX][y].setTextureRect(piecePosition);
 				}
 
-				_gridPieces[x][y].setPosition(_gridStart.x + 10 + tempSpriteSize.y * y + 20 * y,
-					_gridStart.y + 10 + tempSpriteSize.x * x + 20 * x);
+				_gridPieces[x][y].setPosition(_gridPos.left + 10 + tempChessPieceSize.y * y + 20 * y,
+					_gridPos.top + 10 + tempChessPieceSize.x * x + 20 * x);
 				
 				
 			}
@@ -224,8 +225,8 @@ namespace Sonar
 			if (this->_gridArray[row][column] <= _playerColor && this->_gridArray[row][column] >= _playerColor - 5) {
 				this->_gridSelection[row][column].setColor(sf::Color(255, 255, 50, 255));
 
-				for (int x = 0; x < 8; x++) {
-					for (int y = 0; y < 8; y++) {
+				for (int x = 0; x < GRID_SIZE; x++) {
+					for (int y = 0; y < GRID_SIZE; y++) {
 						if ((this->_gridArray[x][y] > _playerColor) || (this->_gridArray[x][y] < _playerColor - 5)) 
 							_gridSelection[x][y].setColor(sf::Color(150, 255, 150, 255));
 					}
@@ -243,8 +244,8 @@ namespace Sonar
 				_gridPieces[row][column].setTextureRect(_gridPieces[_chosenPiece.x][_chosenPiece.y].getTextureRect());
 				_gridPieces[row][column].setColor(sf::Color(255, 255, 255, 255));
 				_gridPieces[_chosenPiece.x][_chosenPiece.y].setColor(sf::Color(255, 255, 255, 0));
-				for (int x = 0; x < 8; x++) {
-					for (int y = 0; y < 8; y++)
+				for (int x = 0; x < GRID_SIZE; x++) {
+					for (int y = 0; y < GRID_SIZE; y++)
 						_gridSelection[x][y].setColor(sf::Color(255, 255, 255, 255));
 				}
 
@@ -257,8 +258,8 @@ namespace Sonar
 		case STATE_ANOTHER_CHOOSING:
 			if (this->_gridArray[row][column] <= _anotherColor && this->_gridArray[row][column] >= _anotherColor - 5) {
 				this->_gridSelection[row][column].setColor(sf::Color(255, 255, 50, 255));
-				for (int x = 0; x < 8; x++) {
-					for (int y = 0; y < 8; y++) {
+				for (int x = 0; x < GRID_SIZE; x++) {
+					for (int y = 0; y < GRID_SIZE; y++) {
 						if (this->_gridArray[x][y] > _anotherColor || this->_gridArray[x][y] < _anotherColor - 5) 
 							_gridSelection[x][y].setColor(sf::Color(150, 255, 150, 255));
 					}
@@ -276,8 +277,8 @@ namespace Sonar
 				_gridPieces[row][column].setTextureRect(_gridPieces[_chosenPiece.x][_chosenPiece.y].getTextureRect());
 				_gridPieces[row][column].setColor(sf::Color(255, 255, 255, 255));
 				_gridPieces[_chosenPiece.x][_chosenPiece.y].setColor(sf::Color(255, 255, 255, 0));
-				for (int x = 0; x < 8; x++) {
-					for (int y = 0; y < 8; y++)
+				for (int x = 0; x < GRID_SIZE; x++) {
+					for (int y = 0; y < GRID_SIZE; y++)
 						_gridSelection[x][y].setColor(sf::Color(255, 255, 255, 255));
 				}
 

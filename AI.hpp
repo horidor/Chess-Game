@@ -4,7 +4,7 @@
 #include "Game.hpp"
 #include <vector>
 
-namespace Sonar
+namespace ChessGUI
 {
 	class AI
 	{

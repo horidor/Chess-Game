@@ -4,7 +4,7 @@
 #include <sstream>
 #include <iostream>
 
-namespace Sonar
+namespace ChessGUI
 {
 	SplashState::SplashState(GameDataRef data)
 	{

@@ -5,7 +5,7 @@
 #include "GameChooseState.hpp"
 #include "DEFINITIONS.hpp"
 
-namespace Sonar
+namespace ChessGUI
 {
 	GameChooseState::GameChooseState(GameDataRef data)
 	{

@@ -1,6 +1,6 @@
 #include "InputManager.hpp"
 
-namespace Sonar
+namespace ChessGUI
 {
 	bool InputManager::isAreaClicked(sf::Sprite object, sf::Mouse::Button button, sf::RenderWindow& window)
 	{

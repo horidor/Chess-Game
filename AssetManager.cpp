@@ -1,6 +1,6 @@
 #include "AssetManager.hpp"
 
-namespace Sonar
+namespace ChessGUI
 {
 	void AssetManager::LoadTexture(std::string name, std::string fileName)
 	{

@@ -36,15 +36,15 @@
 #define CAN_MOVE -2
 #define CANT_MOVE -3
 
-#define WHITE_PIECE		-4
-#define WHITE_QUEEN		-5
+#define WHITE_QUEEN		-4
+#define WHITE_KING		-5
 #define WHITE_ROOK		-6
 #define WHITE_BISHOP	-7
 #define WHITE_KNIGHT	-8
 #define WHITE_PAWN		-9
 
-#define BLACK_PIECE		-10
-#define BLACK_QUEEN		-11
+#define BLACK_QUEEN		-10
+#define BLACK_KING		-11
 #define BLACK_ROOK		-12
 #define BLACK_BISHOP	-13
 #define BLACK_KNIGHT	-14
@@ -59,6 +59,8 @@
 #define STATE_ANOTHER_CHOOSING 100
 #define STATE_ANOTHER_MOVING 101
 
+#define GRID_SIZE 8
+
 #define TIME_BEFORE_SHOWING_GAME_OVER 1
 #define SPRITE_WON_FILEPATH "Resources\\Win.png"
 #define SPRITE_LOSE_FILEPATH "Resources\\Lose.png"
@@ -66,3 +68,5 @@
 #define INITIAL_DEPTH 5
 #define INF 64 * INITIAL_DEPTH
 #define CHILDREN_NUMBER 10
+
+

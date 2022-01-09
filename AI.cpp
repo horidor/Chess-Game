@@ -2,7 +2,7 @@
 #include "DEFINITIONS.hpp"
 #include <map>
 
-namespace Sonar
+namespace ChessGUI
 {
 	AI::AI(GameDataRef data)
 	{

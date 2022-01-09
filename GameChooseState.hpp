@@ -3,7 +3,7 @@
 #include "State.hpp"
 #include "Game.hpp"
 
-namespace Sonar
+namespace ChessGUI
 {
 	class GameChooseState : public State
 	{

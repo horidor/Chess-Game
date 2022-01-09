@@ -4,8 +4,10 @@
 #include "State.hpp"
 #include "Game.hpp"
 #include "AI.hpp"
+#include "ChessLogic.hpp"
+#include <array>
 
-namespace Sonar
+namespace ChessGUI
 {
 	class GameState : public State
 	{
@@ -26,15 +28,14 @@ namespace Sonar
 		sf::Sprite _gridSelection[8][8];
 		sf::Texture _ChessPieces;
 		sf::Clock _clock;
-		int _gridArray[8][8];
+		cppTable _gridArray;
+
 		int _gameState;
 		bool _inputState;
 		int _playerColor, _anotherColor;
-		sf::Vector2i _gridStart;
 		sf::IntRect _gridPos;
 		
-		std::string PlayerPiecePath;
-		std::string AiPiecePath;
 		std::unique_ptr<AI> ai;
+		std::unique_ptr<ChessEngine::ChessLogic> chessLogic;
 	};
 }

@@ -2,12 +2,13 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include <SFML/Graphics.hpp>
 #include "StateMachine.hpp"
 #include "AssetManager.hpp"
 #include "InputManager.hpp"
 
-namespace Sonar
+namespace ChessGUI
 {
 	struct GameData
 	{
@@ -19,6 +20,8 @@ namespace Sonar
 	};
 
 	typedef std::shared_ptr<GameData> GameDataRef;
+
+	typedef std::array<std::array<int8_t, 8>, 8> cppTable;
 
 	class Game
 	{

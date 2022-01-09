@@ -5,7 +5,7 @@
 #include "PauseState.hpp"
 #include "DEFINITIONS.hpp"
 
-namespace Sonar
+namespace ChessGUI
 {
 	PauseState::PauseState(GameDataRef data)
 	{
