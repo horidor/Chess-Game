@@ -218,6 +218,8 @@ namespace ChessGUI
 		column = gridLocalTouchPos.x / gridSectionSize.x ;
 
 		row = gridLocalTouchPos.y / gridSectionSize.y;
+
+		std::vector<std::pair<int, int>> legalMoves = chessLogic->GUILegalMoves(row, column);
 		
 		switch (_gameState) {
 

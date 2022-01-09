@@ -1,5 +1,6 @@
 #include "DEFINITIONS.hpp"
 #include "ChessLogic.hpp"
+#include <iostream>
 
 
 namespace ChessEngine {
@@ -15,29 +16,42 @@ namespace ChessEngine {
 		}
 	}
 
+	std::vector<std::pair<int, int>> ChessLogic::GUILegalMoves(int i, int j) {
+		uint64_t temp = generateLegalMoves(i, j);
+		std::vector<std::pair<int, int>> whatToReturn;
+
+		for (int i = 0; i < 64; i++) {
+			if (temp & ((uint64_t)1 << (64-i))) {
+				whatToReturn.push_back(std::make_pair(i / 8, i % 8));
+			}
+		}
+
+		return whatToReturn;
+	}
+
 	uint64_t ChessLogic::generateLegalMoves(int i, int j)
 	{
-		int currentPos = i * 8 + j;
+		int currentPos = i * 8 + j + 1;
 
 
-		if (QUEENBIT & _bitBoard[currentPos]) {
+		if (((_bitBoard[currentPos]>>QUEENBIT)&1U) == 1) {
 			attackMoves = horizontalMoveCreation(currentPos);
 			attackMoves |= aroundMoveCreation(currentPos);
 			attackMoves |= diagonalMoveCreation(currentPos);
 		}
-		else if (KINGBIT & _bitBoard[currentPos]) {
+		else if (((_bitBoard[currentPos] >> KINGBIT) & 1U) == 1) {
 			attackMoves = kingMoveCreation(currentPos);
 		}
-		else if (ROOKBIT & _bitBoard[currentPos]) {
+		else if (((_bitBoard[currentPos] >> ROOKBIT) & 1U) == 1) {
 			attackMoves = horizontalMoveCreation(currentPos);
 		}
-		else if (KNIGHTBIT & _bitBoard[currentPos]) {
+		else if (((_bitBoard[currentPos] >> KNIGHTBIT) & 1U) == 1) {
 			attackMoves = knightMoveCreation(currentPos);
 		}
-		else if (BISHOPBIT & _bitBoard[currentPos]) {
+		else if (((_bitBoard[currentPos] >> BISHOPBIT) & 1U) == 1) {
 			attackMoves = diagonalMoveCreation(currentPos);
 		}
-		else if (PAWNBIT & _bitBoard[currentPos]) {
+		else if (((_bitBoard[currentPos] >> PAWNBIT) & 1U) == 1) {
 			attackMoves = pawnMoveCreation(currentPos);
 		}
 
@@ -54,27 +68,29 @@ namespace ChessEngine {
 
 		while (verticalAccumP < 64 && _bitBoard[verticalAccumP] == 0)
 		{
-			attackMoves |= (uint64_t)1 << (64 - verticalAccumP - 1);
+			attackMoves |= (uint64_t)1 << (64 - verticalAccumP);
 			verticalAccumP += 8;
 		}
 
 		while (verticalAccumM >= 0 && _bitBoard[verticalAccumM] == 0)
 		{
-			attackMoves |= (uint64_t)1 << (64 - verticalAccumM - 1);
+			attackMoves |= (uint64_t)1 << (64 - verticalAccumM);
 			verticalAccumM -= 8;
 		}
 
 		while (horizontalAccumP < (horizontalBoundary + 1) * 8 && _bitBoard[horizontalAccumP] == 0)
 		{
-			attackMoves |= (uint64_t)1 << (64 - horizontalAccumP - 1);
+			attackMoves |= (uint64_t)1 << (64 - horizontalAccumP);
 			horizontalAccumP += 1;
 		}
 
 		while (horizontalAccumM > horizontalBoundary * 8 && _bitBoard[horizontalAccumM] == 0)
 		{
-			attackMoves |= (uint64_t)1 << (64 - horizontalAccumM - 1);
+			attackMoves |= (uint64_t)1 << (64 - horizontalAccumM);
 			horizontalAccumP -= 1;
 		}
+
+		std::cout << attackMoves << std::endl;
 
 		return attackMoves;
 	}
@@ -88,43 +104,112 @@ namespace ChessEngine {
 
 		while (topLeftAccum % 8 != 0 && _bitBoard[topLeftAccum] == 0)
 		{
-			attackMoves |= (uint64_t)1 << (64 - topLeftAccum - 1);
+			attackMoves |= (uint64_t)1 << (64 - topLeftAccum);
 			topLeftAccum -= 9;
 		}
 
 		while ((topRightAccum+1) % 8 != 0 && _bitBoard[topRightAccum] == 0)
 		{
-			attackMoves |= (uint64_t)1 << (64 - topRightAccum - 1);
+			attackMoves |= (uint64_t)1 << (64 - topRightAccum);
 			topRightAccum -= 7;
 		}
 
 		while (botLeftAccum % 8 != 0 && _bitBoard[botLeftAccum] == 0)
 		{
-			attackMoves |= (uint64_t)1 << (64 - botLeftAccum - 1);
+			attackMoves |= (uint64_t)1 << (64 - botLeftAccum);
 			botLeftAccum += 7;
 		}
 
 		while ((botRightAccum+1) % 8 != 0 && _bitBoard[botRightAccum] == 0)
 		{
-			attackMoves |= (uint64_t)1 << (64 - botRightAccum - 1);
+			attackMoves |= (uint64_t)1 << (64 - botRightAccum);
 			botRightAccum += 9;
 		}
+
+		std::cout << attackMoves << std::endl;
+
+		return attackMoves;
 	}
 
 	uint64_t ChessLogic::aroundMoveCreation(int position) {
-		
+		if (position >= 8) {
+			if (position % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position - 9);
+			attackMoves |= (uint64_t)1 << (64 - position - 8 - 1);
+			if ((position+1) % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position - 7);
+		}
+
+		if (position < 56) {
+			if (position % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position + 7);
+			attackMoves |= (uint64_t)1 << (64 - position + 8);
+			if ((position + 1) % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position + 9);
+		}
+
+		if (position % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position - 1);
+		else if ((position+1) % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position + 1);
+
+		std::cout << attackMoves << std::endl;
+
+		return attackMoves;
+
 	}
 
 	uint64_t ChessLogic::knightMoveCreation(int position) {
+		if (position >= 16) {
+			attackMoves |= (uint64_t)1 << (64 - position - 17);
+			attackMoves |= (uint64_t)1 << (64 - position - 15);
+		}
 
+		if (position < 48) {
+			attackMoves |= (uint64_t)1 << (64 - position + 15);
+			attackMoves |= (uint64_t)1 << (64 - position + 17);
+		}
+
+		if ((position - 1) % 8 != 0) {
+			attackMoves |= (uint64_t)1 << (64 - position - 10);
+			attackMoves |= (uint64_t)1 << (64 - position + 6);
+		}
+
+		if ((position + 2) % 8 != 0) {
+			attackMoves |= (uint64_t)1 << (64 - position + 10);
+			attackMoves |= (uint64_t)1 << (64 - position - 6);
+		}
+
+		std::cout << attackMoves << std::endl;
+
+		return attackMoves;
 	}
 
 	uint64_t ChessLogic::kingMoveCreation(int position) {
+		if (position >= 8) {
+			if (position % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position - 9);
+			attackMoves |= (uint64_t)1 << (64 - position - 8 - 1);
+			if ((position + 1) % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position - 7);
+		}
 
+		if (position < 56) {
+			if (position % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position + 7);
+			attackMoves |= (uint64_t)1 << (64 - position + 8);
+			if ((position + 1) % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position + 9);
+		}
+
+		if (position % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position - 1);
+		else if ((position + 1) % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position + 1);
+
+		std::cout << attackMoves << std::endl;
+
+		return attackMoves;
 	}
 
 	uint64_t ChessLogic::pawnMoveCreation(int position) {
+		if (position >= 8) {
+			if (position % 8 != 0 && _bitBoard[position - 9] != 0) attackMoves |= (uint64_t)1 << (64 - position - 9);
+			attackMoves |= (uint64_t)1 << (64 - position - 8);
+			if ((position + 1) % 8 != 0 && _bitBoard[position - 7] != 0) attackMoves |= (uint64_t)1 << (64 - position - 7);
+		}
 
+		std::cout << attackMoves << std::endl;
+
+		return attackMoves;
 	}
 
 
@@ -143,22 +228,22 @@ namespace ChessEngine {
 		switch (GUIType)
 		{
 		case (WHITE_QUEEN):
-			type |= QUEENBIT;
+			type |= (1U<<QUEENBIT);
 			break;
 		case (WHITE_KING):
-			type |= KINGBIT;
+			type |= (1U<<KINGBIT);
 			break;
 		case (WHITE_ROOK):
-			type |= ROOKBIT;
+			type |= (1U<<ROOKBIT);
 			break;
 		case (WHITE_KNIGHT):
-			type |= KNIGHTBIT;
+			type |= (1U<<KNIGHTBIT);
 			break;
 		case (WHITE_BISHOP):
-			type |= BISHOPBIT;
+			type |= (1U<<BISHOPBIT);
 			break;
 		case (WHITE_PAWN):
-			type |= PAWNBIT;
+			type |= (1U<<PAWNBIT);
 			break;
 		}
 

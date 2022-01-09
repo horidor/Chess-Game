@@ -1,27 +1,27 @@
 #pragma once
 #include <array>
 #include <stdint.h>
+#include <bitset>
 #include "Game.hpp"
 
 namespace ChessEngine {
 	enum chessBits {
-		QUEENBIT = (1U << 7),
-		KINGBIT = (1U << 6),
-		ROOKBIT = (1U << 5),
-		KNIGHTBIT = (1U << 4),
-		BISHOPBIT = (1U << 3),
-		PAWNBIT = (1U << 2),
-		WHITEBIT = (1U << 1),
-		BLACKBIT = (1U)
+		QUEENBIT = 7,
+		KINGBIT = 6,
+		ROOKBIT = 5,
+		KNIGHTBIT = 4,
+		BISHOPBIT = 3,
+		PAWNBIT = 2,
+		WHITEBIT = 1,
+		BLACKBIT = 0
 	};
 
 	class ChessLogic {
 	public:
 
 		ChessLogic(ChessGUI::cppTable GUIArray);
-		~ChessLogic();
 		uint64_t generateLegalMoves(int i, int j);
-		std::vector<int> GUILegalMoves(int i, int j);
+		std::vector<std::pair<int, int>> GUILegalMoves(int i, int j);
 
 	private:
 
