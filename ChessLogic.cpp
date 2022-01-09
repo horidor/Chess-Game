@@ -22,8 +22,8 @@ namespace ChessEngine {
 
 		if (QUEENBIT & _bitBoard[currentPos]) {
 			attackMoves = horizontalMoveCreation(currentPos);
-			attackMoves += aroundMoveCreation(currentPos);
-			attackMoves += diagonalMoveCreation(currentPos);
+			attackMoves |= aroundMoveCreation(currentPos);
+			attackMoves |= diagonalMoveCreation(currentPos);
 		}
 		else if (KINGBIT & _bitBoard[currentPos]) {
 			attackMoves = kingMoveCreation(currentPos);
