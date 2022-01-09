@@ -20,23 +20,26 @@ namespace ChessEngine {
 
 		ChessLogic(ChessGUI::cppTable GUIArray);
 		~ChessLogic();
-		bool* generateLegalMoves(int i, int j);
+		uint64_t generateLegalMoves(int i, int j);
 		std::vector<int> GUILegalMoves(int i, int j);
 
 	private:
 
 		uint8_t translateGUItoEngine(int8_t GUIType);
 
-		bool _bitBoard[64][8];
-		bool* attackMoves;
+		uint8_t _bitBoard[64];
+		uint64_t attackMoves;
 
-		std::array<bool, 64> diagonalMoveCreation(const bool**);
-		std::array<bool, 64> horizontalMoveCreation(const bool**);
-		std::array<bool, 64> knightMoveCreation(const bool**);
-		std::array<bool, 64> kingaroundMoveCreation(const bool**);
-		std::array<bool, 64> pawnMoveCreation(const bool**);
+		uint64_t diagonalMoveCreation(int position);
+		uint64_t horizontalMoveCreation(int position);
+		uint64_t knightMoveCreation(int position);
+		uint64_t aroundMoveCreation(int position);
 
-		bool _bitBoardOld[64][8];
+		uint64_t kingMoveCreation(int position);
+
+		uint64_t pawnMoveCreation(int position);
+
+		uint8_t _bitBoardOld[64];
 
 	};
 }
