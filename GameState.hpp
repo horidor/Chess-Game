@@ -17,11 +17,7 @@ namespace Sonar
 		void Draw(float dt);
 	private:
 		void InitGridPiece();
-		void CheckAndPlacePieces();
-		void CheckPlayerWon();
-		bool CheckEmptyPieces();
-		void ColorAround(int column, int row);
-		void CheckGameOver();
+		void CheckAndPlacePieces(sf::Vector2i touchPoint);
 		GameDataRef _data;
 		sf::Sprite _background;
 		sf::Sprite _pauseButton;
@@ -36,7 +32,7 @@ namespace Sonar
 		int _playerColor, _anotherColor;
 		sf::Vector2i _gridStart;
 		sf::IntRect _gridPos;
-		sf::Vector2i _chosenPiece;
+		
 		std::string PlayerPiecePath;
 		std::string AiPiecePath;
 		std::unique_ptr<AI> ai;

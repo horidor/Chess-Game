@@ -32,11 +32,23 @@
 #define WHITE_TILE "Resources\\Game Files\\Tile White.png"
 #define BLACK_TILE "Resources\\Game Files\\Tile Black.png"
 
-#define EMPTY_PIECE -1
+#define EMPTY_PIECE -16
 #define CAN_MOVE -2
 #define CANT_MOVE -3
-#define WHITE_PIECE -4
-#define BLACK_PIECE -5
+
+#define WHITE_PIECE		-4
+#define WHITE_QUEEN		-5
+#define WHITE_ROOK		-6
+#define WHITE_BISHOP	-7
+#define WHITE_KNIGHT	-8
+#define WHITE_PAWN		-9
+
+#define BLACK_PIECE		-10
+#define BLACK_QUEEN		-11
+#define BLACK_ROOK		-12
+#define BLACK_BISHOP	-13
+#define BLACK_KNIGHT	-14
+#define BLACK_PAWN		-15
 
 #define STATE_PLAYING 94
 #define STATE_PAUSED 95

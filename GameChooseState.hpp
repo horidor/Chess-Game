@@ -17,6 +17,7 @@ namespace Sonar
 		GameDataRef _data;
 		sf::Sprite _XButton;
 		sf::Sprite _YButton;
+		sf::Texture _mainTexture;
 		int _gameState;
 	};
 }

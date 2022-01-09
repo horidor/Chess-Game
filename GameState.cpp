@@ -64,6 +64,7 @@ namespace Sonar
 	void GameState::HandleInput()
 	{
 		sf::Event event;
+		sf::Vector2i touchPoint;
 		while (this->_data->window.pollEvent(event))
 		{
 			switch (event.type) {
@@ -71,12 +72,13 @@ namespace Sonar
 					this->_data->window.close();
 					break;
 				case (sf::Event::MouseButtonPressed):
+					touchPoint = this->_data->input.GetMousePosition(this->_data->window);
 
 					if (this->_data->input.isAreaClicked(this->_pauseButton, sf::Mouse::Left, this->_data->window))
 						this->_data->machine.AddState(StateRef(new PauseState(_data)), false);
 
 					else if (this->_data->input.isAreaClicked(this->_gridPos, sf::Mouse::Left, this->_data->window))
-						this->CheckAndPlacePieces();
+						this->CheckAndPlacePieces(touchPoint);
 
 					break;
 				default:
@@ -105,7 +107,6 @@ namespace Sonar
 		this->_data->window.clear();
 		this->_data->window.draw(this->_background);
 		this->_data->window.draw(this->_pauseButton);
-		//this->_data->window.draw(this->_gridSprite);
 
 		for (int x = 0; x < 8; x++)
 		{
@@ -130,7 +131,7 @@ namespace Sonar
 			WhiteOrBlackFlag = !WhiteOrBlackFlag;
 			for (int y = 0; y < 8; y++)
 			{
-				if (WhiteOrBlackFlag) _gridSelection[x][y].setTexture(this->_data->assets.GetTexture("White Tile"));
+				if (!WhiteOrBlackFlag) _gridSelection[x][y].setTexture(this->_data->assets.GetTexture("White Tile"));
 				else  _gridSelection[x][y].setTexture(this->_data->assets.GetTexture("Black Tile"));
 
 				_gridSelection[x][y].setPosition(_gridStart.x + _gridSelection[x][y].getGlobalBounds().width * y, _gridStart.y + _gridSelection[x][y].getGlobalBounds().height * x);
@@ -143,11 +144,8 @@ namespace Sonar
 					int anotherY = 7 - y;
 
 					_gridPieces[x][y].setTexture(_ChessPieces);
-					
-					_gridArray[x][y] = BLACK_PIECE;
 
-					_gridPieces[anotherX][anotherY].setTexture(_ChessPieces);
-					_gridArray[anotherX][anotherY] = WHITE_PIECE;
+					_gridPieces[anotherX][y].setTexture(_ChessPieces);
 
 					sf::IntRect piecePosition;
 					piecePosition.height = piecePosition.width = tempSpriteSize.x;
@@ -155,6 +153,8 @@ namespace Sonar
 
 					if (x == 1) {
 						piecePosition.left = 300;
+						_gridArray[x][y] = BLACK_PAWN;
+						_gridArray[anotherX][y] = WHITE_PAWN;
 					}
 					else if (x == 0)
 					{
@@ -162,25 +162,35 @@ namespace Sonar
 						{
 						case 'Q':
 							piecePosition.left = 0;
+							_gridArray[x][y] = BLACK_QUEEN;
+							_gridArray[anotherX][y] = WHITE_QUEEN;
 							break;
 						case 'K':
 							piecePosition.left = 60;
+							_gridArray[x][y] = BLACK_PIECE;
+							_gridArray[anotherX][y] = WHITE_PIECE;
 							break;
 						case 'R':
 							piecePosition.left = 120;
+							_gridArray[x][y] = BLACK_ROOK;
+							_gridArray[anotherX][y] = WHITE_ROOK;
 							break;
 						case 'k':
 							piecePosition.left = 180;
+							_gridArray[x][y] = BLACK_KNIGHT;
+							_gridArray[anotherX][y] = WHITE_KNIGHT;
 							break;
 						case 'B':
 							piecePosition.left = 240;
+							_gridArray[x][y] = BLACK_BISHOP;
+							_gridArray[anotherX][y] = WHITE_BISHOP;
 							break;
 						}
 					}
 
 					_gridPieces[x][y].setTextureRect(piecePosition);
 					piecePosition.top = 60;
-					_gridPieces[anotherX][anotherY].setTextureRect(piecePosition);
+					_gridPieces[anotherX][y].setTextureRect(piecePosition);
 				}
 
 				_gridPieces[x][y].setPosition(_gridStart.x + 10 + tempSpriteSize.y * y + 20 * y,
@@ -191,14 +201,17 @@ namespace Sonar
 		}
 	}
 
-	void GameState::CheckAndPlacePieces()
+	void GameState::CheckAndPlacePieces(sf::Vector2i touchPoint)
 	{
-		this->_inputState = false;
-		sf::Vector2i touchPoint = this->_data->input.GetMousePosition(this->_data->window);
-		sf::FloatRect gridSize = _gridSprite.getGlobalBounds();
+		static sf::Vector2i _chosenPiece;
+		static int _oldPiece;
+
+		sf::FloatRect gridSize(_gridPos);
 		sf::Vector2f gapOutsideOfGrid = sf::Vector2f((SCREEN_WIDTH - gridSize.width) / 2 - 50, (SCREEN_HEIGHT - gridSize.height) / 2);
 		sf::Vector2f gridLocalTouchPos = sf::Vector2f(touchPoint.x - gapOutsideOfGrid.x, touchPoint.y - gapOutsideOfGrid.y);
 		sf::Vector2f gridSectionSize = sf::Vector2f(gridSize.width / 8, gridSize.height / 8);
+		
+
 		int column = 0, row = 0;
 
 		column = gridLocalTouchPos.x / gridSectionSize.x ;
@@ -206,21 +219,26 @@ namespace Sonar
 		row = gridLocalTouchPos.y / gridSectionSize.y;
 		
 		switch (_gameState) {
+
 		case STATE_PLAYER_CHOOSING:
-			if (this->_gridArray[row][column] == _playerColor) {
+			if (this->_gridArray[row][column] <= _playerColor && this->_gridArray[row][column] >= _playerColor - 5) {
+				this->_gridSelection[row][column].setColor(sf::Color(255, 255, 50, 255));
+
 				for (int x = 0; x < 8; x++) {
 					for (int y = 0; y < 8; y++) {
-						if (_gridArray[x][y] != _playerColor) _gridSelection[x][y].setColor(sf::Color(150, 255, 150, 255));
+						if ((this->_gridArray[x][y] > _playerColor) || (this->_gridArray[x][y] < _playerColor - 5)) 
+							_gridSelection[x][y].setColor(sf::Color(150, 255, 150, 255));
 					}
 				}
 				_gameState = STATE_PLAYER_MOVING;
+				_oldPiece = _gridArray[row][column];
 				_chosenPiece.x = row;
 				_chosenPiece.y = column;
 			}
 			break;
 		
 		case STATE_PLAYER_MOVING:
-			if (this->_gridArray[row][column] != _playerColor) {
+			if (this->_gridArray[row][column] > _playerColor || this->_gridArray[row][column] < _playerColor - 5) {
 				_gridPieces[row][column].setTexture(*_gridPieces[_chosenPiece.x][_chosenPiece.y].getTexture());
 				_gridPieces[row][column].setTextureRect(_gridPieces[_chosenPiece.x][_chosenPiece.y].getTextureRect());
 				_gridPieces[row][column].setColor(sf::Color(255, 255, 255, 255));
@@ -231,26 +249,29 @@ namespace Sonar
 				}
 
 				_gameState = STATE_ANOTHER_CHOOSING;
-				_gridArray[row][column] = _playerColor;
+				_gridArray[row][column] = _oldPiece;
 				_gridArray[_chosenPiece.x][_chosenPiece.y] = EMPTY_PIECE;
 			}
 			break;
 		
 		case STATE_ANOTHER_CHOOSING:
-			if (this->_gridArray[row][column] == _anotherColor) {
+			if (this->_gridArray[row][column] <= _anotherColor && this->_gridArray[row][column] >= _anotherColor - 5) {
+				this->_gridSelection[row][column].setColor(sf::Color(255, 255, 50, 255));
 				for (int x = 0; x < 8; x++) {
 					for (int y = 0; y < 8; y++) {
-						if (_gridArray[x][y] != _anotherColor) _gridSelection[x][y].setColor(sf::Color(150, 255, 150, 255));
+						if (this->_gridArray[x][y] > _anotherColor || this->_gridArray[x][y] < _anotherColor - 5) 
+							_gridSelection[x][y].setColor(sf::Color(150, 255, 150, 255));
 					}
 				}
 				_gameState = STATE_ANOTHER_MOVING;
+				_oldPiece = _gridArray[row][column];
 				_chosenPiece.x = row;
 				_chosenPiece.y = column;
 			}
 			break;
 
 		case STATE_ANOTHER_MOVING:
-			if (this->_gridArray[row][column] != _anotherColor) {
+			if (this->_gridArray[row][column] < _anotherColor || this->_gridArray[row][column] > _anotherColor - 5) {
 				_gridPieces[row][column].setTexture(*_gridPieces[_chosenPiece.x][_chosenPiece.y].getTexture());
 				_gridPieces[row][column].setTextureRect(_gridPieces[_chosenPiece.x][_chosenPiece.y].getTextureRect());
 				_gridPieces[row][column].setColor(sf::Color(255, 255, 255, 255));
@@ -261,93 +282,13 @@ namespace Sonar
 				}
 
 				_gameState = STATE_PLAYER_CHOOSING;
-				_gridArray[row][column] = _anotherColor;
+				_gridArray[row][column] = _oldPiece;
 				_gridArray[_chosenPiece.x][_chosenPiece.y] = EMPTY_PIECE;
 			}
 			break;
 		}
 	}
 
-	void GameState::CheckPlayerWon()
-	{
-		CheckGameOver();
-		
-		if (_gameState == STATE_ANOTHER_CHOOSING)
-		{
-			int col = -1, row = -1;
-
-			int tempGrid[8][8];
-			for (int i = 0; i < 8; i++)
-			{
-				for (int j = 0; j < 8; j++)
-				{
-					tempGrid[i][j] = this->_gridArray[i][j];
-				}
-			}
-			
-			ai->PlacePiece(tempGrid, col, row);
-
-			_gameState = STATE_PLAYING;
-
-			this->_gridArray[col][row] = CANT_MOVE;
-			this->ColorAround(col, row);
-			this->_gridPieces[col][row].setTexture(this->_data->assets.GetTexture("AI Piece"));
-			CheckGameOver();
-		}
-	}
-
-	void GameState::CheckGameOver()
-	{
-		if (!this->CheckEmptyPieces())
-		{
-			if (this->_gameState == STATE_PLAYING)
-			{
-				_gameState = STATE_LOSE;
-			}
-			else
-			{
-				_gameState = STATE_WON;
-			}
-
-			this->_clock.restart();
-		}
-	}
-
-	bool GameState::CheckEmptyPieces()
-	{
-		for (int i = 0; i < 8; i++)
-		{
-			for (int j = 0; j < 8; j++)
-			{
-				if (this->_gridArray[i][j] != CANT_MOVE)
-				{
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	void GameState::ColorAround(int c, int r)
-	{
-		for (int i = c - 1; i < c + 2; i++)
-		{
-			for (int j = r - 1; j < r + 2; j++)
-			{
-				if (i >= 0 && i <= 7 && j >= 0 && j <= 7)
-				{
-					this->_gridPieces[i][j].setColor(sf::Color(255, 255, 255, 255));
-					this->_gridArray[i][j] = CANT_MOVE;
-					if (i == c && j == r)
-					{
-						continue;
-					}
-					this->_gridPieces[i][j].setTexture(this->_data->assets.GetTexture("Block Piece"));
-
-				}
-			}
-		}
-	}
 
 }
 

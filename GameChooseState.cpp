@@ -15,14 +15,19 @@ namespace Sonar
 	void GameChooseState::Init()
 	{
 		this->_data->assets.LoadTexture("Pieces", CHESS_PIECE_ARRAY);
+		_mainTexture = this->_data->assets.GetTexture("Pieces");
+		_mainTexture.setSmooth(1);
 
-		this->_XButton.setTexture(this->_data->assets.GetTexture("Pieces"));
-		this->_YButton.setTexture(this->_data->assets.GetTexture("Pieces"));
+		this->_XButton.setTexture(_mainTexture);
+		this->_YButton.setTexture(_mainTexture);
 
-		this->_XButton.setPosition(SCREEN_WIDTH / 2 - 100,
+		this->_XButton.setPosition(SCREEN_WIDTH / 2 - 130,
 			this->_data->window.getSize().y / 2 + this->_XButton.getLocalBounds().height / 2);
 		this->_YButton.setPosition(SCREEN_WIDTH / 2 + 40,
 			this->_data->window.getSize().y / 2 + this->_YButton.getLocalBounds().height / 2);
+		
+		this->_XButton.setScale(1.5f, 1.5f);
+		this->_YButton.setScale(1.5f, 1.5f);
 
 		this->_XButton.setTextureRect(sf::IntRect(60, 60, 60, 60));
 		this->_YButton.setTextureRect(sf::IntRect(60, 0, 60, 60));
