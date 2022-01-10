@@ -36,19 +36,19 @@
 #define CAN_MOVE -2
 #define CANT_MOVE -3
 
-#define WHITE_QUEEN		-4
-#define WHITE_KING		-5
-#define WHITE_ROOK		-6
-#define WHITE_BISHOP	-7
-#define WHITE_KNIGHT	-8
-#define WHITE_PAWN		-9
+#define WHITE_QUEEN		4
+#define WHITE_KING		5
+#define WHITE_ROOK		6
+#define WHITE_BISHOP	7
+#define WHITE_KNIGHT	8
+#define WHITE_PAWN		9
 
-#define BLACK_QUEEN		-10
-#define BLACK_KING		-11
-#define BLACK_ROOK		-12
-#define BLACK_BISHOP	-13
-#define BLACK_KNIGHT	-14
-#define BLACK_PAWN		-15
+#define BLACK_QUEEN		-4
+#define BLACK_KING		-5
+#define BLACK_ROOK		-6
+#define BLACK_BISHOP	-7
+#define BLACK_KNIGHT	-8
+#define BLACK_PAWN		-9
 
 #define STATE_PLAYING 94
 #define STATE_PAUSED 95

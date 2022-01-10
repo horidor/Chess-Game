@@ -2,252 +2,271 @@
 #include "ChessLogic.hpp"
 #include <iostream>
 
+using namespace ChessGUI;
 
 namespace ChessEngine {
 
-	ChessLogic::ChessLogic(ChessGUI::cppTable GUITable)
+	enum PieceColour {
+		BLACK = true,
+		WHITE = false
+	};
+
+	ChessLogic::ChessLogic(cppTable GUITable)
 	{
-		int bitboardAcc = 0;
-		for (int i = 0; i < GRID_SIZE; i++) {
-			for (int j = 0; j < GRID_SIZE; j++) {
-				_bitBoard[bitboardAcc] = translateGUItoEngine(GUITable[i][j]);
-				bitboardAcc++;
-			}
+		_chessBoard = GUITable;
+	}
+
+	cppTable ChessLogic::generateLegalMoves(int i, int j)
+	{
+		for (auto& row : attackMoves) row.fill(CANT_MOVE);
+
+		switch (_chessBoard[i][j])
+		{
+		case WHITE_QUEEN:
+		case BLACK_QUEEN:
+			horizontalMoveCreation(i, j);
+			diagonalMoveCreation(i, j);
+			aroundMoveCreation(i, j);
+			break;
+		case WHITE_KING:
+		case BLACK_KING:
+			kingMoveCreation(i, j);
+			break;
+		case WHITE_ROOK:
+		case BLACK_ROOK:
+			horizontalMoveCreation(i, j);
+			break;
+		case WHITE_KNIGHT:
+		case BLACK_KNIGHT:
+			knightMoveCreation(i, j);
+			break;
+		case WHITE_BISHOP:
+		case BLACK_BISHOP:
+			diagonalMoveCreation(i, j);
+			break;
+		case WHITE_PAWN:
+		case BLACK_PAWN:
+			pawnMoveCreation(i, j);
+			break;
 		}
+
+		return attackMoves;
 	}
 
 	std::vector<std::pair<int, int>> ChessLogic::GUILegalMoves(int i, int j) {
-		uint64_t temp = generateLegalMoves(i, j);
-		std::vector<std::pair<int, int>> whatToReturn;
+		cppTable legalMoves = generateLegalMoves(i, j);
+		std::vector < std::pair <int, int>> legalMovesGUI;
 
-		for (int i = 0; i < 64; i++) {
-			if (temp & ((uint64_t)1 << (64-i))) {
-				whatToReturn.push_back(std::make_pair(i / 8, i % 8));
+		for (auto& it : legalMoves) {
+			for (auto iter : it)
+				std::cout << iter << "  ";
+			std::cout << "\n";
+		}
+
+		for (int _i = 0; _i < GRID_SIZE; _i++)
+			for (int _j = 0; _j < GRID_SIZE; _j++)
+				if (legalMoves[_i][_j] == CAN_MOVE)
+					legalMovesGUI.push_back(std::make_pair(_i, _j));
+		
+		return legalMovesGUI;
+	}
+
+	bool ChessLogic::pieceColour(int piece) {
+		if (piece > 0) return WHITE;
+		return BLACK;
+	}
+
+	bool ChessLogic::isBlocking(int i, int j, int checkedfori, int checkedforj) {
+		if ((_chessBoard[i][j] == EMPTY_PIECE) || (isEnemy(i, j, checkedfori, checkedforj)))
+			return false;
+		return true;
+	}
+
+	bool ChessLogic::isEnemy(int i, int j, int checkedfori, int checkedforj) {
+		if (pieceColour(_chessBoard[i][j]) != (pieceColour(_chessBoard[checkedfori][checkedforj])) && _chessBoard[i][j] != EMPTY_PIECE)
+			return true;
+		return false;
+	}
+
+	void ChessLogic::horizontalMoveCreation(int i, int j) {
+		int verticalAccumN = i;
+		if (i <= 0) verticalAccumN += 1;
+		int verticalAccumP = i;
+		if (i >= 7) verticalAccumP -= 1;
+
+		int horizontalAccumN = j;
+		if (j <= 0) horizontalAccumN += 1;
+		int horizontalAccumP = j;
+		if (j >= 7) horizontalAccumP -= 1;
+
+		while (verticalAccumN - 1 > 0 && _chessBoard[verticalAccumN - 1][j] == EMPTY_PIECE)
+		{
+			verticalAccumN--;
+			attackMoves[verticalAccumN][j] = CAN_MOVE;
+		}
+
+		verticalAccumN--;
+		if (!isBlocking(verticalAccumN, j, i, j)) 
+			attackMoves[verticalAccumN][j] = CAN_MOVE;
+
+		while (verticalAccumP+1 < 7 && _chessBoard[verticalAccumP + 1][j] == EMPTY_PIECE)
+		{
+			attackMoves[verticalAccumP][j] = CAN_MOVE;
+			verticalAccumP++;
+		}
+
+		verticalAccumP++;
+		if (!isBlocking(verticalAccumP, j, i, j))
+			attackMoves[verticalAccumP][j] = CAN_MOVE;
+
+		while (horizontalAccumN-1 > 0 && _chessBoard[i][horizontalAccumN - 1] == EMPTY_PIECE)
+		{
+			attackMoves[i][horizontalAccumP] = CAN_MOVE;
+			horizontalAccumN--;
+		}
+
+		horizontalAccumN--;
+		if (!isBlocking(i, horizontalAccumN, i, j))
+			attackMoves[i][horizontalAccumN] = CAN_MOVE;
+
+		while (horizontalAccumP+1 < 7 && _chessBoard[i][horizontalAccumN + 1] == EMPTY_PIECE)
+		{
+			attackMoves[i][horizontalAccumP] = CAN_MOVE;
+			horizontalAccumP++;
+		}
+
+		horizontalAccumP++;
+		if (!isBlocking(i, horizontalAccumP, i, j))
+			attackMoves[i][horizontalAccumP] = CAN_MOVE;
+	}
+
+	void ChessLogic::diagonalMoveCreation(int i, int j) {
+		int Accum = 0;
+		if (i <= 0 || j <= 0) Accum -= 1;
+		
+
+		while ((j - Accum - 1 > 0 && i - Accum - 1 > 0) && _chessBoard[i - Accum - 1][j - Accum - 1]  == EMPTY_PIECE)
+		{
+			Accum++;
+			attackMoves[i - Accum][j - Accum] = CAN_MOVE;
+		}
+
+		Accum++;
+		if (!isBlocking(i-Accum, j-Accum, i, j))
+			attackMoves[i - Accum][j - Accum] = CAN_MOVE;
+
+		Accum = 0;
+		if (i <= 0 || j >= 7) Accum -= 1;
+
+		while ((j + Accum + 1 < 7 && i - Accum - 1 > 0) && _chessBoard[i - Accum - 1][j + Accum + 1] == EMPTY_PIECE)
+		{
+			Accum++;
+			attackMoves[i - Accum][j + Accum] = CAN_MOVE;
+		}
+
+		Accum++;
+		if (!isBlocking(i - Accum, j + Accum, i, j))
+			attackMoves[i - Accum][j + Accum] = CAN_MOVE;
+
+
+		Accum = 0;
+		if (i >= 7 || j <= 0) Accum -= 1;
+
+		while ((j - Accum - 1 > 0 && i + Accum + 1 < 7) && _chessBoard[i + Accum + 1][j - Accum - 1] == EMPTY_PIECE)
+		{
+			Accum++;
+			attackMoves[i + Accum][j - Accum] = CAN_MOVE;
+		}
+
+		Accum++;
+		if (!isBlocking(i + Accum, j - Accum, i, j))
+			attackMoves[i + Accum][j - Accum] = CAN_MOVE;
+
+		
+		Accum = 0;
+		if (i >= 7 || j >= 7) Accum -= 1;
+
+		while ((j + Accum + 1 < 7 && i + Accum + 1 < 7) && _chessBoard[i + Accum + 1][j + Accum + 1] == EMPTY_PIECE)
+		{
+			Accum++;
+			_chessBoard[i + Accum][j + Accum] = CAN_MOVE;
+		}
+
+		Accum++;
+		if (!isBlocking(i + Accum, j + Accum, i, j))
+			attackMoves[Accum + i][Accum + j] = CAN_MOVE;
+
+	}
+
+	void ChessLogic::aroundMoveCreation(int i, int j) {
+		for (int c = i - 1; c < i + 2; c++) {
+			for (int k = j - 1; k < j + 2; k++) {
+				if (c >= 0 && c < 8 && k >= 0 && k < 8) {
+					if (!isBlocking(c, k, i, j))
+						attackMoves[c][k] = CAN_MOVE;
+				}
+			}
+		}
+	}
+
+	void ChessLogic::knightMoveCreation(int i, int j) {
+		for (int c = i - 2; c <= i + 2; c += 4) {
+			for (int k = j - 1; k < j + 2; k += 2) {
+				if (c >= 0 && c < 8 && k >= 0 && k < 8) {
+					if (!isBlocking(c, k, i, j))
+						attackMoves[c][k] = CAN_MOVE;
+				}
 			}
 		}
 
-		return whatToReturn;
+		for (int c = i - 1; c <= i + 2; c += 2) {
+			for (int k = j - 2; k < j + 2; k += 4) {
+				if (c >= 0 && c < 8 && k >= 0 && k < 8) {
+					if (!isBlocking(c, k, i, j))
+						attackMoves[c][k] = CAN_MOVE;
+				}
+			}
+		}
 	}
 
-	uint64_t ChessLogic::generateLegalMoves(int i, int j)
-	{
-		int currentPos = i * 8 + j + 1;
-
-
-		if (((_bitBoard[currentPos]>>QUEENBIT)&1U) == 1) {
-			attackMoves = horizontalMoveCreation(currentPos);
-			attackMoves |= aroundMoveCreation(currentPos);
-			attackMoves |= diagonalMoveCreation(currentPos);
-		}
-		else if (((_bitBoard[currentPos] >> KINGBIT) & 1U) == 1) {
-			attackMoves = kingMoveCreation(currentPos);
-		}
-		else if (((_bitBoard[currentPos] >> ROOKBIT) & 1U) == 1) {
-			attackMoves = horizontalMoveCreation(currentPos);
-		}
-		else if (((_bitBoard[currentPos] >> KNIGHTBIT) & 1U) == 1) {
-			attackMoves = knightMoveCreation(currentPos);
-		}
-		else if (((_bitBoard[currentPos] >> BISHOPBIT) & 1U) == 1) {
-			attackMoves = diagonalMoveCreation(currentPos);
-		}
-		else if (((_bitBoard[currentPos] >> PAWNBIT) & 1U) == 1) {
-			attackMoves = pawnMoveCreation(currentPos);
-		}
-
-		return attackMoves;
+	void ChessLogic::kingMoveCreation(int i, int j) {
+		aroundMoveCreation(i, j);
 	}
 
-	uint64_t ChessLogic::horizontalMoveCreation(int position) {
-		int verticalAccumP = position + 8;
-		int verticalAccumM = position - 8;
-
-		int horizontalAccumP = position + 1;
-		int horizontalAccumM = position - 1;
-		int horizontalBoundary = position / 8;
-
-		while (verticalAccumP < 64 && _bitBoard[verticalAccumP] == 0)
-		{
-			attackMoves |= (uint64_t)1 << (64 - verticalAccumP);
-			verticalAccumP += 8;
-		}
-
-		while (verticalAccumM >= 0 && _bitBoard[verticalAccumM] == 0)
-		{
-			attackMoves |= (uint64_t)1 << (64 - verticalAccumM);
-			verticalAccumM -= 8;
-		}
-
-		while (horizontalAccumP < (horizontalBoundary + 1) * 8 && _bitBoard[horizontalAccumP] == 0)
-		{
-			attackMoves |= (uint64_t)1 << (64 - horizontalAccumP);
-			horizontalAccumP += 1;
-		}
-
-		while (horizontalAccumM > horizontalBoundary * 8 && _bitBoard[horizontalAccumM] == 0)
-		{
-			attackMoves |= (uint64_t)1 << (64 - horizontalAccumM);
-			horizontalAccumP -= 1;
-		}
-
-		std::cout << attackMoves << std::endl;
-
-		return attackMoves;
-	}
-
-	uint64_t ChessLogic::diagonalMoveCreation(int position) {
-		int topLeftAccum = position - 9;
-		int topRightAccum = position - 7;
-
-		int botLeftAccum = position + 7;
-		int botRightAccum = position + 9;
-
-		while (topLeftAccum % 8 != 0 && _bitBoard[topLeftAccum] == 0)
-		{
-			attackMoves |= (uint64_t)1 << (64 - topLeftAccum);
-			topLeftAccum -= 9;
-		}
-
-		while ((topRightAccum+1) % 8 != 0 && _bitBoard[topRightAccum] == 0)
-		{
-			attackMoves |= (uint64_t)1 << (64 - topRightAccum);
-			topRightAccum -= 7;
-		}
-
-		while (botLeftAccum % 8 != 0 && _bitBoard[botLeftAccum] == 0)
-		{
-			attackMoves |= (uint64_t)1 << (64 - botLeftAccum);
-			botLeftAccum += 7;
-		}
-
-		while ((botRightAccum+1) % 8 != 0 && _bitBoard[botRightAccum] == 0)
-		{
-			attackMoves |= (uint64_t)1 << (64 - botRightAccum);
-			botRightAccum += 9;
-		}
-
-		std::cout << attackMoves << std::endl;
-
-		return attackMoves;
-	}
-
-	uint64_t ChessLogic::aroundMoveCreation(int position) {
-		if (position >= 8) {
-			if (position % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position - 9);
-			attackMoves |= (uint64_t)1 << (64 - position - 8 - 1);
-			if ((position+1) % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position - 7);
-		}
-
-		if (position < 56) {
-			if (position % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position + 7);
-			attackMoves |= (uint64_t)1 << (64 - position + 8);
-			if ((position + 1) % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position + 9);
-		}
-
-		if (position % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position - 1);
-		else if ((position+1) % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position + 1);
-
-		std::cout << attackMoves << std::endl;
-
-		return attackMoves;
-
-	}
-
-	uint64_t ChessLogic::knightMoveCreation(int position) {
-		if (position >= 16) {
-			attackMoves |= (uint64_t)1 << (64 - position - 17);
-			attackMoves |= (uint64_t)1 << (64 - position - 15);
-		}
-
-		if (position < 48) {
-			attackMoves |= (uint64_t)1 << (64 - position + 15);
-			attackMoves |= (uint64_t)1 << (64 - position + 17);
-		}
-
-		if ((position - 1) % 8 != 0) {
-			attackMoves |= (uint64_t)1 << (64 - position - 10);
-			attackMoves |= (uint64_t)1 << (64 - position + 6);
-		}
-
-		if ((position + 2) % 8 != 0) {
-			attackMoves |= (uint64_t)1 << (64 - position + 10);
-			attackMoves |= (uint64_t)1 << (64 - position - 6);
-		}
-
-		std::cout << attackMoves << std::endl;
-
-		return attackMoves;
-	}
-
-	uint64_t ChessLogic::kingMoveCreation(int position) {
-		if (position >= 8) {
-			if (position % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position - 9);
-			attackMoves |= (uint64_t)1 << (64 - position - 8 - 1);
-			if ((position + 1) % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position - 7);
-		}
-
-		if (position < 56) {
-			if (position % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position + 7);
-			attackMoves |= (uint64_t)1 << (64 - position + 8);
-			if ((position + 1) % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position + 9);
-		}
-
-		if (position % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position - 1);
-		else if ((position + 1) % 8 != 0) attackMoves |= (uint64_t)1 << (64 - position + 1);
-
-		std::cout << attackMoves << std::endl;
-
-		return attackMoves;
-	}
-
-	uint64_t ChessLogic::pawnMoveCreation(int position) {
-		if (position >= 8) {
-			if (position % 8 != 0 && _bitBoard[position - 9] != 0) attackMoves |= (uint64_t)1 << (64 - position - 9);
-			attackMoves |= (uint64_t)1 << (64 - position - 8);
-			if ((position + 1) % 8 != 0 && _bitBoard[position - 7] != 0) attackMoves |= (uint64_t)1 << (64 - position - 7);
-		}
-
-		std::cout << attackMoves << std::endl;
-
-		return attackMoves;
-	}
-
-
-
-	uint8_t ChessLogic::translateGUItoEngine(int8_t GUIType)
-	{
-		uint8_t type = 0;
-		if (GUIType > BLACK_QUEEN) type |= WHITEBIT;
-
-		else if (GUIType < BLACK_QUEEN)
-		{
-			type |= BLACKBIT;
-			GUIType += 5;
-		}
-
-		switch (GUIType)
-		{
-		case (WHITE_QUEEN):
-			type |= (1U<<QUEENBIT);
+	void ChessLogic::pawnMoveCreation(int i, int j) {
+		switch (pieceColour(_chessBoard[i][j])) {
+		case BLACK:
+			if (i < 7) {
+				if (!isBlocking(i + 1, j, i, j))
+					attackMoves[i + 1][j] = CAN_MOVE;
+			
+				if (j < 7) {
+					if (isEnemy(i + 1, j + 1, i, j))
+						attackMoves[i + 1][j + 1] = CAN_MOVE;
+				}
+				
+				if (j > 0) {
+					if (isEnemy(i + 1, j - 1, i, j))
+						attackMoves[i + 1][j - 1] = CAN_MOVE;
+				}
+			}
 			break;
-		case (WHITE_KING):
-			type |= (1U<<KINGBIT);
-			break;
-		case (WHITE_ROOK):
-			type |= (1U<<ROOKBIT);
-			break;
-		case (WHITE_KNIGHT):
-			type |= (1U<<KNIGHTBIT);
-			break;
-		case (WHITE_BISHOP):
-			type |= (1U<<BISHOPBIT);
-			break;
-		case (WHITE_PAWN):
-			type |= (1U<<PAWNBIT);
-			break;
+		case WHITE:
+			if (i > 0) {
+				if (!isBlocking(i - 1, j, i, j))
+					attackMoves[i - 1][j] = CAN_MOVE;
+				
+				if (j < 7) {
+					if (isEnemy(i - 1, j + 1, i, j) && j < 7)
+						attackMoves[i - 1][j + 1] = CAN_MOVE;
+				}
+				
+				if (j > 0) {
+					if (isEnemy(i - 1, j - 1, i, j) && j > 0)
+						attackMoves[i - 1][j - 1] = CAN_MOVE;
+				}
+			}
 		}
-
-		return GUIType;
 	}
 
 }

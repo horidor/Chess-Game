@@ -5,41 +5,32 @@
 #include "Game.hpp"
 
 namespace ChessEngine {
-	enum chessBits {
-		QUEENBIT = 7,
-		KINGBIT = 6,
-		ROOKBIT = 5,
-		KNIGHTBIT = 4,
-		BISHOPBIT = 3,
-		PAWNBIT = 2,
-		WHITEBIT = 1,
-		BLACKBIT = 0
-	};
 
 	class ChessLogic {
 	public:
 
 		ChessLogic(ChessGUI::cppTable GUIArray);
-		uint64_t generateLegalMoves(int i, int j);
+		ChessGUI::cppTable generateLegalMoves(int i, int j);
 		std::vector<std::pair<int, int>> GUILegalMoves(int i, int j);
+		static bool pieceColour(int piece);
 
 	private:
 
-		uint8_t translateGUItoEngine(int8_t GUIType);
+		ChessGUI::cppTable _chessBoard;
+		ChessGUI::cppTable attackMoves;
 
-		uint8_t _bitBoard[64];
-		uint64_t attackMoves;
+		void diagonalMoveCreation(int i, int j);
+		void horizontalMoveCreation(int i, int j);
+		void knightMoveCreation(int i, int j);
+		void aroundMoveCreation(int i, int j);
+		void kingMoveCreation(int i, int j);
+		void pawnMoveCreation(int i, int j);
 
-		uint64_t diagonalMoveCreation(int position);
-		uint64_t horizontalMoveCreation(int position);
-		uint64_t knightMoveCreation(int position);
-		uint64_t aroundMoveCreation(int position);
+		
+		bool isBlocking(int i, int j, int anotheri, int anoterj);
+		bool isEnemy(int i, int j, int anotheri, int anoterj);
 
-		uint64_t kingMoveCreation(int position);
-
-		uint64_t pawnMoveCreation(int position);
-
-		uint8_t _bitBoardOld[64];
+		ChessGUI::cppTable _chessBoardOld;
 
 	};
 }

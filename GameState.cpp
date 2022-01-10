@@ -224,21 +224,7 @@ namespace ChessGUI
 		switch (_gameState) {
 
 		case STATE_PLAYER_CHOOSING:
-			if (this->_gridArray[row][column] <= _playerColor && this->_gridArray[row][column] >= _playerColor - 5) {
-				this->_gridSelection[row][column].setColor(sf::Color(255, 255, 50, 255));
-
-				for (int x = 0; x < GRID_SIZE; x++) {
-					for (int y = 0; y < GRID_SIZE; y++) {
-						if ((this->_gridArray[x][y] > _playerColor) || (this->_gridArray[x][y] < _playerColor - 5)) 
-							_gridSelection[x][y].setColor(sf::Color(150, 255, 150, 255));
-					}
-				}
-				_gameState = STATE_PLAYER_MOVING;
-				_oldPiece = _gridArray[row][column];
-				_chosenPiece.x = row;
-				_chosenPiece.y = column;
-			}
-			break;
+			
 		
 		case STATE_PLAYER_MOVING:
 			if (this->_gridArray[row][column] > _playerColor || this->_gridArray[row][column] < _playerColor - 5) {

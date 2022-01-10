@@ -20,6 +20,10 @@ namespace ChessGUI
 	private:
 		void InitGridPiece();
 		void CheckAndPlacePieces(sf::Vector2i touchPoint);
+
+		void ChoosingPhase(int choosingColor);
+		void MovingPhase(int movingColor);
+
 		GameDataRef _data;
 		sf::Sprite _background;
 		sf::Sprite _pauseButton;
