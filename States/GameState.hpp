@@ -2,9 +2,9 @@
 
 #include <SFML/Graphics.hpp>
 #include "State.hpp"
-#include "Game.hpp"
-#include "AI.hpp"
-#include "ChessLogic.hpp"
+#include "Game/Game.hpp"
+#include "ChessEngine/AI.hpp"
+#include "ChessEngine/ChessLogic.hpp"
 #include <array>
 
 namespace ChessGUI
@@ -21,8 +21,10 @@ namespace ChessGUI
 		void InitGridPiece();
 		void CheckAndPlacePieces(sf::Vector2i touchPoint);
 
-		void ChoosingPhase(int choosingColor);
-		void MovingPhase(int movingColor);
+		bool givenPlayersPiece(int piece, int pColor);
+
+		std::vector<std::pair<int, int>>& ChoosingPhase(int row, int column, int choosingColor);
+		void MovingPhase(int row, int column, int movingColor, std::vector<std::pair<int, int>>& legalMoves);
 
 		GameDataRef _data;
 		sf::Sprite _background;
@@ -30,14 +32,16 @@ namespace ChessGUI
 		sf::Sprite _gridSprite;
 		sf::Sprite _gridPieces[8][8];
 		sf::Sprite _gridSelection[8][8];
+		 
 		sf::Texture _ChessPieces;
 		sf::Clock _clock;
 		cppTable _gridArray;
 
 		int _gameState;
-		bool _inputState;
 		int _playerColor, _anotherColor;
+
 		sf::IntRect _gridPos;
+		sf::Vector2i _chosenPiece;
 		
 		std::unique_ptr<AI> ai;
 		std::unique_ptr<ChessEngine::ChessLogic> chessLogic;

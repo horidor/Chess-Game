@@ -32,7 +32,7 @@
 #define WHITE_TILE "Resources\\Game Files\\Tile White.png"
 #define BLACK_TILE "Resources\\Game Files\\Tile Black.png"
 
-#define EMPTY_PIECE -16
+#define EMPTY_PIECE 0
 #define CAN_MOVE -2
 #define CANT_MOVE -3
 

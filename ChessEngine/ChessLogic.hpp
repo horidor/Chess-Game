@@ -2,7 +2,7 @@
 #include <array>
 #include <stdint.h>
 #include <bitset>
-#include "Game.hpp"
+#include "Game/Game.hpp"
 
 namespace ChessEngine {
 
@@ -12,7 +12,7 @@ namespace ChessEngine {
 		ChessLogic(ChessGUI::cppTable GUIArray);
 		ChessGUI::cppTable generateLegalMoves(int i, int j);
 		std::vector<std::pair<int, int>> GUILegalMoves(int i, int j);
-		static bool pieceColour(int piece);
+		void makeMove(int fromi, int fromj, int toi, int toj);
 
 	private:
 
@@ -26,7 +26,7 @@ namespace ChessEngine {
 		void kingMoveCreation(int i, int j);
 		void pawnMoveCreation(int i, int j);
 
-		
+		bool pieceColour(int piece);
 		bool isBlocking(int i, int j, int anotheri, int anoterj);
 		bool isEnemy(int i, int j, int anotheri, int anoterj);
 

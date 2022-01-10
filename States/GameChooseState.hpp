@@ -1,24 +1,23 @@
 #pragma once
-
 #include <SFML/Graphics.hpp>
 #include "State.hpp"
-#include "Game.hpp"
+#include "Game/Game.hpp"
 
 namespace ChessGUI
 {
-	class MainMenuState : public State
+	class GameChooseState : public State
 	{
 	public:
-		MainMenuState(GameDataRef data);
+		GameChooseState(GameDataRef data);
 		void Init();
 		void HandleInput();
 		void Update(float dt);
 		void Draw(float dt);
 	private:
 		GameDataRef _data;
-		sf::Text _title;
-		sf::Sprite _background;
-		sf::Sprite _playButton;
-		sf::Sprite _playButtonOuter;
+		sf::Sprite _XButton;
+		sf::Sprite _YButton;
+		sf::Texture _mainTexture;
+		int _gameState;
 	};
 }

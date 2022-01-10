@@ -88,6 +88,11 @@ namespace ChessEngine {
 		return false;
 	}
 
+	void ChessLogic::makeMove(int fromi, int fromj, int toi, int toj) {
+		_chessBoard[toi][toj] = _chessBoard[fromi][fromj];
+		_chessBoard[fromi][fromj] = EMPTY_PIECE;
+	}
+
 	void ChessLogic::horizontalMoveCreation(int i, int j) {
 		int verticalAccumN = i;
 		if (i <= 0) verticalAccumN += 1;

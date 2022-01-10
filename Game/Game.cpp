@@ -1,5 +1,5 @@
 #include "Game.hpp"
-#include "SplashState.hpp"
+#include "States/SplashState.hpp"
 
 namespace ChessGUI
 {

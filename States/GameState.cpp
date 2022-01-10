@@ -15,7 +15,6 @@ namespace ChessGUI
 
 	void GameState::Init()
 	{
-		_inputState = false;
 
 		if (this->_data->firsttoPlay == "another")
 		{
@@ -59,7 +58,6 @@ namespace ChessGUI
 		InitGridPiece();
 
 		this->chessLogic = std::make_unique<ChessEngine::ChessLogic>(_gridArray);
-		_inputState = true;
 	}
 
 	void GameState::HandleInput()
@@ -91,7 +89,6 @@ namespace ChessGUI
 
 	void GameState::Update(float dt)
 	{
-		this->_inputState = false;
 		if (_gameState == STATE_LOSE || _gameState == STATE_WON)
 		{
 			if (this->_clock.getElapsedTime().asSeconds() > TIME_BEFORE_SHOWING_GAME_OVER)
@@ -99,12 +96,10 @@ namespace ChessGUI
 				this->_data->machine.AddState(StateRef(new GameOverState(_data, _gameState)), true);
 			}
 		}
-		this->_inputState = true;
 	}
 
 	void GameState::Draw(float dt)
 	{
-		this->_inputState = false;
 		this->_data->window.clear();
 		this->_data->window.draw(this->_background);
 		this->_data->window.draw(this->_pauseButton);
@@ -119,7 +114,6 @@ namespace ChessGUI
 		}
 
 		this->_data->window.display();
-		this->_inputState = true;
 	}
 
 	void GameState::InitGridPiece()
@@ -204,14 +198,10 @@ namespace ChessGUI
 
 	void GameState::CheckAndPlacePieces(sf::Vector2i touchPoint)
 	{
-		static sf::Vector2i _chosenPiece;
-		static int _oldPiece;
-
 		sf::FloatRect gridSize(_gridPos);
 		sf::Vector2f gapOutsideOfGrid = sf::Vector2f((SCREEN_WIDTH - gridSize.width) / 2 - 50, (SCREEN_HEIGHT - gridSize.height) / 2);
 		sf::Vector2f gridLocalTouchPos = sf::Vector2f(touchPoint.x - gapOutsideOfGrid.x, touchPoint.y - gapOutsideOfGrid.y);
 		sf::Vector2f gridSectionSize = sf::Vector2f(gridSize.width / 8, gridSize.height / 8);
-		
 
 		int column = 0, row = 0;
 
@@ -219,65 +209,98 @@ namespace ChessGUI
 
 		row = gridLocalTouchPos.y / gridSectionSize.y;
 
-		std::vector<std::pair<int, int>> legalMoves = chessLogic->GUILegalMoves(row, column);
+		static std::vector<std::pair<int, int>> legalMoves;
 		
 		switch (_gameState) {
 
 		case STATE_PLAYER_CHOOSING:
-			
+			legalMoves = ChoosingPhase(row, column, _playerColor);
+			break;
 		
 		case STATE_PLAYER_MOVING:
-			if (this->_gridArray[row][column] > _playerColor || this->_gridArray[row][column] < _playerColor - 5) {
-				_gridPieces[row][column].setTexture(*_gridPieces[_chosenPiece.x][_chosenPiece.y].getTexture());
-				_gridPieces[row][column].setTextureRect(_gridPieces[_chosenPiece.x][_chosenPiece.y].getTextureRect());
-				_gridPieces[row][column].setColor(sf::Color(255, 255, 255, 255));
-				_gridPieces[_chosenPiece.x][_chosenPiece.y].setColor(sf::Color(255, 255, 255, 0));
-				for (int x = 0; x < GRID_SIZE; x++) {
-					for (int y = 0; y < GRID_SIZE; y++)
-						_gridSelection[x][y].setColor(sf::Color(255, 255, 255, 255));
-				}
-
-				_gameState = STATE_ANOTHER_CHOOSING;
-				_gridArray[row][column] = _oldPiece;
-				_gridArray[_chosenPiece.x][_chosenPiece.y] = EMPTY_PIECE;
-			}
+			MovingPhase(row, column, _playerColor, legalMoves);
 			break;
 		
 		case STATE_ANOTHER_CHOOSING:
-			if (this->_gridArray[row][column] <= _anotherColor && this->_gridArray[row][column] >= _anotherColor - 5) {
-				this->_gridSelection[row][column].setColor(sf::Color(255, 255, 50, 255));
-				for (int x = 0; x < GRID_SIZE; x++) {
-					for (int y = 0; y < GRID_SIZE; y++) {
-						if (this->_gridArray[x][y] > _anotherColor || this->_gridArray[x][y] < _anotherColor - 5) 
-							_gridSelection[x][y].setColor(sf::Color(150, 255, 150, 255));
-					}
-				}
-				_gameState = STATE_ANOTHER_MOVING;
-				_oldPiece = _gridArray[row][column];
-				_chosenPiece.x = row;
-				_chosenPiece.y = column;
-			}
+			legalMoves = ChoosingPhase(row, column, _anotherColor);
+			_gameState = STATE_ANOTHER_MOVING;
 			break;
 
 		case STATE_ANOTHER_MOVING:
-			if (this->_gridArray[row][column] < _anotherColor || this->_gridArray[row][column] > _anotherColor - 5) {
-				_gridPieces[row][column].setTexture(*_gridPieces[_chosenPiece.x][_chosenPiece.y].getTexture());
-				_gridPieces[row][column].setTextureRect(_gridPieces[_chosenPiece.x][_chosenPiece.y].getTextureRect());
-				_gridPieces[row][column].setColor(sf::Color(255, 255, 255, 255));
-				_gridPieces[_chosenPiece.x][_chosenPiece.y].setColor(sf::Color(255, 255, 255, 0));
-				for (int x = 0; x < GRID_SIZE; x++) {
-					for (int y = 0; y < GRID_SIZE; y++)
-						_gridSelection[x][y].setColor(sf::Color(255, 255, 255, 255));
-				}
-
-				_gameState = STATE_PLAYER_CHOOSING;
-				_gridArray[row][column] = _oldPiece;
-				_gridArray[_chosenPiece.x][_chosenPiece.y] = EMPTY_PIECE;
-			}
+			MovingPhase(row, column, _anotherColor, legalMoves);
+			_gameState = STATE_PLAYER_CHOOSING;
 			break;
 		}
 	}
 
+	std::vector<std::pair<int, int>>& GameState::ChoosingPhase(int row, int column, int choosingColor) {
+		static std::vector<std::pair <int, int>> legalMoves;
+		if (givenPlayersPiece(_gridArray[row][column], choosingColor)) {
+			_gridSelection[row][column].setColor(sf::Color(235, 235, 50, 255));
+			legalMoves = chessLogic->GUILegalMoves(row, column);
+			for (auto& it : legalMoves)
+			{
+				_gridSelection[it.first][it.second].setColor(sf::Color(50, 255, 50, 255));
+			}
+
+			_chosenPiece.x = row;
+			_chosenPiece.y = column;
+			
+			if (choosingColor == _playerColor) {
+				_gameState = STATE_PLAYER_MOVING;
+			}
+			else {
+				_gameState = STATE_ANOTHER_MOVING;
+			}
+
+		}
+
+		return legalMoves;
+	}
+
+	void GameState::MovingPhase(int row, int column, int movingColor, std::vector<std::pair<int, int>>& legalMoves) {
+		if ([=]() {
+			for (auto& it : legalMoves) {
+				if (std::make_pair(row, column) == it)
+					return true;
+			}
+			return false; }()) {
+			////////////////////
+
+			chessLogic->makeMove(_chosenPiece.x, _chosenPiece.y, row, column);
+
+			sf::IntRect pieceRect = _gridPieces[_chosenPiece.x][_chosenPiece.y].getTextureRect();
+			_gridPieces[row][column].setTexture(*_gridPieces[_chosenPiece.x][_chosenPiece.y].getTexture());
+			_gridPieces[row][column].setTextureRect(pieceRect);
+
+			_gridPieces[_chosenPiece.x][_chosenPiece.y].setColor(sf::Color(255, 255, 255, 0));
+
+			for (int i = 0; i < 8; i++)
+				for (int j = 0; j < 8; j++)
+					_gridSelection[i][j].setColor(sf::Color(255, 255, 255, 255));
+
+
+			_gridArray[row][column] = _gridArray[_chosenPiece.x][_chosenPiece.y];
+			_gridArray[_chosenPiece.x][_chosenPiece.y] = EMPTY_PIECE;
+
+			if (movingColor == _playerColor) {
+				_gameState = STATE_ANOTHER_CHOOSING;
+			}
+			else {
+				_gameState = STATE_PLAYER_CHOOSING;
+			}
+
+			legalMoves.clear();
+
+		}
+	}
+
+	bool GameState::givenPlayersPiece(int piece, int pColor) {
+		if ((piece >= 0) == (pColor >= 0))
+			return true;
+
+		return false;
+	}
 
 }
 

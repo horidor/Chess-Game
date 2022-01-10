@@ -2,22 +2,23 @@
 
 #include <SFML/Graphics.hpp>
 #include "State.hpp"
-#include "Game.hpp"
+#include "Game/Game.hpp"
 
 namespace ChessGUI
 {
-	class SplashState : public State
+	class MainMenuState : public State
 	{
 	public:
-		SplashState(GameDataRef data);
+		MainMenuState(GameDataRef data);
 		void Init();
 		void HandleInput();
 		void Update(float dt);
 		void Draw(float dt);
-
 	private:
 		GameDataRef _data;
-		sf::Clock _clock;
+		sf::Text _title;
 		sf::Sprite _background;
+		sf::Sprite _playButton;
+		sf::Sprite _playButtonOuter;
 	};
 }

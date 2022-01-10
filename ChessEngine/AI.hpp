@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SFML/Graphics.hpp>
-#include "Game.hpp"
+#include "Game/Game.hpp"
 #include <vector>
 
 namespace ChessGUI

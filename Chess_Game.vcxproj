@@ -117,7 +117,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>E:\SFML-2.5.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\SFML-2.5.1\include;E:\labs\chessGame\Chess_Game</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -135,7 +135,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>E:\SFML-2.5.1\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>E:\SFML-2.5.1\include;E:\labs\chessGame\Chess_Game</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -147,35 +147,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="AI.hpp" />
-    <ClInclude Include="AssetManager.hpp" />
-    <ClInclude Include="ChessLogic.hpp" />
+    <ClInclude Include="ChessEngine\AI.hpp" />
+    <ClInclude Include="ChessEngine\ChessLogic.hpp" />
     <ClInclude Include="DEFINITIONS.hpp" />
-    <ClInclude Include="Game.hpp" />
-    <ClInclude Include="GameChooseState.hpp" />
-    <ClInclude Include="GameOverState.hpp" />
-    <ClInclude Include="GameState.hpp" />
-    <ClInclude Include="InputManager.hpp" />
-    <ClInclude Include="MainMenuState.hpp" />
-    <ClInclude Include="PauseState.hpp" />
-    <ClInclude Include="SplashState.hpp" />
-    <ClInclude Include="State.hpp" />
-    <ClInclude Include="StateMachine.hpp" />
+    <ClInclude Include="Game\AssetManager.hpp" />
+    <ClInclude Include="Game\Game.hpp" />
+    <ClInclude Include="Game\InputManager.hpp" />
+    <ClInclude Include="Game\StateMachine.hpp" />
+    <ClInclude Include="States\GameChooseState.hpp" />
+    <ClInclude Include="States\GameOverState.hpp" />
+    <ClInclude Include="States\GameState.hpp" />
+    <ClInclude Include="States\MainMenuState.hpp" />
+    <ClInclude Include="States\PauseState.hpp" />
+    <ClInclude Include="States\SplashState.hpp" />
+    <ClInclude Include="States\State.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="AI.cpp" />
-    <ClCompile Include="AssetManager.cpp" />
-    <ClCompile Include="ChessLogic.cpp" />
+    <ClCompile Include="ChessEngine\AI.cpp" />
+    <ClCompile Include="ChessEngine\ChessLogic.cpp" />
     <ClCompile Include="Chess_Game.cpp" />
-    <ClCompile Include="Game.cpp" />
-    <ClCompile Include="GameChooseState.cpp" />
-    <ClCompile Include="GameOverState.cpp" />
-    <ClCompile Include="GameState.cpp" />
-    <ClCompile Include="InputManager.cpp" />
-    <ClCompile Include="MainMenuState.cpp" />
-    <ClCompile Include="PauseState.cpp" />
-    <ClCompile Include="SplashState.cpp" />
-    <ClCompile Include="StateMachine.cpp" />
+    <ClCompile Include="Game\AssetManager.cpp" />
+    <ClCompile Include="Game\Game.cpp" />
+    <ClCompile Include="Game\InputManager.cpp" />
+    <ClCompile Include="Game\StateMachine.cpp" />
+    <ClCompile Include="States\GameChooseState.cpp" />
+    <ClCompile Include="States\GameOverState.cpp" />
+    <ClCompile Include="States\GameState.cpp" />
+    <ClCompile Include="States\MainMenuState.cpp" />
+    <ClCompile Include="States\PauseState.cpp" />
+    <ClCompile Include="States\SplashState.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

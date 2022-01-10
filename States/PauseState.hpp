@@ -2,7 +2,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "State.hpp"
-#include "Game.hpp"
+#include "Game/Game.hpp"
 
 namespace ChessGUI
 {

@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include <stack>
-#include "State.hpp"
+#include "States/State.hpp"
 
 namespace ChessGUI
 {
