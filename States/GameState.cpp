@@ -311,7 +311,7 @@ namespace ChessGUI
 	}
 
 	bool GameState::givenPlayersPiece(int piece, int pColor) {
-		if ((piece > 0) == (pColor > 0))
+		if ((piece > 0) == (pColor > 0) and (piece != EMPTY_PIECE))
 			return true;
 
 		return false;
