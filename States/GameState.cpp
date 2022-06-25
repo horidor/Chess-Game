@@ -218,17 +218,29 @@ namespace ChessGUI
 			break;
 		
 		case STATE_PLAYER_MOVING:
+			if (_chosenPiece.x == row && _chosenPiece.y == column) {
+				for (int i = 0; i < 8; i++)
+					for (int j = 0; j < 8; j++)
+						_gridSelection[i][j].setColor(sf::Color(255, 255, 255, 255));
+				_chosenPiece.x == -1; _chosenPiece.y = -1;
+				_gameState = STATE_PLAYER_CHOOSING;
+			}
 			MovingPhase(row, column, _playerColor, legalMoves);
 			break;
 		
 		case STATE_ANOTHER_CHOOSING:
 			legalMoves = ChoosingPhase(row, column, _anotherColor);
-			_gameState = STATE_ANOTHER_MOVING;
 			break;
 
 		case STATE_ANOTHER_MOVING:
+			if (_chosenPiece.x == row && _chosenPiece.y == column) {
+				for (int i = 0; i < 8; i++)
+					for (int j = 0; j < 8; j++)
+						_gridSelection[i][j].setColor(sf::Color(255, 255, 255, 255));
+				_chosenPiece.x == -1; _chosenPiece.y = -1;
+				_gameState = STATE_ANOTHER_CHOOSING;
+			}
 			MovingPhase(row, column, _anotherColor, legalMoves);
-			_gameState = STATE_PLAYER_CHOOSING;
 			break;
 		}
 	}
@@ -259,26 +271,28 @@ namespace ChessGUI
 	}
 
 	void GameState::MovingPhase(int row, int column, int movingColor, std::vector<std::pair<int, int>>& legalMoves) {
-		if ([=]() {
+		/// checks if selected row and column is indeed in legal moves 
+		if ([](auto& legalMoves, auto row, auto column) {
 			for (auto& it : legalMoves) {
 				if (std::make_pair(row, column) == it)
 					return true;
 			}
-			return false; }()) {
+			return false; }(legalMoves, row, column)) 
+		{
 			////////////////////
 
 			chessLogic->makeMove(_chosenPiece.x, _chosenPiece.y, row, column);
 
 			sf::IntRect pieceRect = _gridPieces[_chosenPiece.x][_chosenPiece.y].getTextureRect();
-			_gridPieces[row][column].setTexture(*_gridPieces[_chosenPiece.x][_chosenPiece.y].getTexture());
+			_gridPieces[row][column].setTexture(_ChessPieces);
 			_gridPieces[row][column].setTextureRect(pieceRect);
-
-			_gridPieces[_chosenPiece.x][_chosenPiece.y].setColor(sf::Color(255, 255, 255, 0));
 
 			for (int i = 0; i < 8; i++)
 				for (int j = 0; j < 8; j++)
 					_gridSelection[i][j].setColor(sf::Color(255, 255, 255, 255));
 
+			_gridPieces[_chosenPiece.x][_chosenPiece.y].setColor(sf::Color(255, 255, 255, 0));
+			_gridPieces[row][column].setColor(sf::Color(255, 255, 255, 255));
 
 			_gridArray[row][column] = _gridArray[_chosenPiece.x][_chosenPiece.y];
 			_gridArray[_chosenPiece.x][_chosenPiece.y] = EMPTY_PIECE;
@@ -291,12 +305,13 @@ namespace ChessGUI
 			}
 
 			legalMoves.clear();
+			_chosenPiece.x = -1; _chosenPiece.y = -1;
 
 		}
 	}
 
 	bool GameState::givenPlayersPiece(int piece, int pColor) {
-		if ((piece >= 0) == (pColor >= 0))
+		if ((piece > 0) == (pColor > 0))
 			return true;
 
 		return false;
