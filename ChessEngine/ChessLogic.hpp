@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include <vector>
 #include <stdint.h>
 #include <bitset>
 #include "Game/Game.hpp"
@@ -14,8 +15,18 @@ namespace ChessEngine {
 		std::vector<std::pair<int, int>> GUILegalMoves(int i, int j);
 		void makeMove(int fromi, int fromj, int toi, int toj);
 
+		bool getEnd() { return isEnd(); }
+
 
 	private:
+
+		enum PieceColour {
+			BLACK = -1,
+			WHITE = 1
+		};
+
+		int whoseTurn = WHITE;
+		bool CheckPhase = false;
 
 		struct Piece {
 			std::bitset<64> attackMap;
@@ -23,7 +34,11 @@ namespace ChessEngine {
 			std::pair<int, int> position;
 		};
 
-		std::array<std::array<Piece, 8>, 8> _chessBoard;
+		Piece checkCheckingPiece;
+
+		typedef std::array<std::array<Piece, 8>, 8> pieceBoard;
+
+		pieceBoard _chessBoard;
 
 		std::bitset<64> diagonalMoveCreation(int i, int j);
 		std::bitset<64> horizontalMoveCreation(int i, int j);
@@ -34,9 +49,21 @@ namespace ChessEngine {
 
 		void resetAttackMaps();
 
-		bool pieceColour(int piece);
+		std::bitset<64> streamGenerator(int toi, int toj, int fromi, int fromj);
+
+		bool isEnd();
+
+		void generationCheckMaps(pieceBoard& boardToCheck);
+
+		std::vector<std::bitset<64>> checkMaps;
+
+		std::pair<int, int> WhiteKingPos;
+		std::pair<int, int> BlackKingPos;
+
+		int pieceColour(int piece);
 		bool isBlocking(int i, int j, int anotheri, int anoterj);
 		bool isEnemy(int i, int j, int anotheri, int anoterj);
+		bool isAlly(int i, int j, int checkedfori, int checkedforj);
 
 	};
 }

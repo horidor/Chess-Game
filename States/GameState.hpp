@@ -26,6 +26,8 @@ namespace ChessGUI
 		std::vector<std::pair<int, int>>& ChoosingPhase(int row, int column, int choosingColor);
 		void MovingPhase(int row, int column, int movingColor, std::vector<std::pair<int, int>>& legalMoves);
 
+		void endCheck(int movingColour);
+
 		GameDataRef _data;
 		sf::Sprite _background;
 		sf::Sprite _pauseButton;

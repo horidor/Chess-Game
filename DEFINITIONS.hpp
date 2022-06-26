@@ -61,7 +61,7 @@
 
 #define GRID_SIZE 8
 
-#define TIME_BEFORE_SHOWING_GAME_OVER 1
+#define TIME_BEFORE_SHOWING_GAME_OVER 10
 #define SPRITE_WON_FILEPATH "Resources\\Win.png"
 #define SPRITE_LOSE_FILEPATH "Resources\\Lose.png"
 

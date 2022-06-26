@@ -222,10 +222,11 @@ namespace ChessGUI
 				for (int i = 0; i < 8; i++)
 					for (int j = 0; j < 8; j++)
 						_gridSelection[i][j].setColor(sf::Color(255, 255, 255, 255));
-				_chosenPiece.x == -1; _chosenPiece.y = -1;
+				_chosenPiece.x = -1; _chosenPiece.y = -1;
 				_gameState = STATE_PLAYER_CHOOSING;
 			}
 			MovingPhase(row, column, _playerColor, legalMoves);
+			endCheck(_anotherColor);
 			break;
 		
 		case STATE_ANOTHER_CHOOSING:
@@ -237,10 +238,11 @@ namespace ChessGUI
 				for (int i = 0; i < 8; i++)
 					for (int j = 0; j < 8; j++)
 						_gridSelection[i][j].setColor(sf::Color(255, 255, 255, 255));
-				_chosenPiece.x == -1; _chosenPiece.y = -1;
+				_chosenPiece.x = -1; _chosenPiece.y = -1;
 				_gameState = STATE_ANOTHER_CHOOSING;
 			}
 			MovingPhase(row, column, _anotherColor, legalMoves);
+			endCheck(_playerColor);
 			break;
 		}
 	}
@@ -315,6 +317,13 @@ namespace ChessGUI
 			return true;
 
 		return false;
+	}
+
+	void GameState::endCheck(int movingColour) {
+		if (chessLogic->getEnd()) {
+			if (movingColour == _playerColor) _gameState = STATE_LOSE;
+			else if (movingColour == _anotherColor) _gameState = STATE_WON;
+		}
 	}
 
 }
