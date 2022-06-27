@@ -11,7 +11,7 @@ namespace ChessEngine {
 	public:
 
 		ChessLogic(ChessGUI::cppTable GUIArray);
-		std::bitset<64> generateLegalMoves(int i, int j);
+		
 		std::vector<std::pair<int, int>> GUILegalMoves(int i, int j);
 		void makeMove(int fromi, int fromj, int toi, int toj);
 
@@ -19,6 +19,7 @@ namespace ChessEngine {
 
 
 	private:
+		
 
 		enum PieceColour {
 			BLACK = -1,
@@ -40,14 +41,20 @@ namespace ChessEngine {
 
 		pieceBoard _chessBoard;
 
+		std::bitset<64> generateMoves(int i, int j);
 		std::bitset<64> diagonalMoveCreation(int i, int j);
 		std::bitset<64> horizontalMoveCreation(int i, int j);
 		std::bitset<64> knightMoveCreation(int i, int j);
 		std::bitset<64> aroundMoveCreation(int i, int j);
 		std::bitset<64> kingMoveCreation(int i, int j);
 		std::bitset<64> pawnMoveCreation(int i, int j);
+		std::bitset<64> generateLegalMoves(int i, int j, std::bitset<64> attackMoves);
 
-		void resetAttackMaps();
+		void resetMaps();
+		void resetPawnMaps();
+
+		std::bitset<64> whitePawnMap;
+		std::bitset<64> blackPawnMap;
 
 		std::bitset<64> streamGenerator(int toi, int toj, int fromi, int fromj);
 

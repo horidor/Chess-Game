@@ -24,10 +24,11 @@ namespace ChessEngine {
 			}
 		}
 
-		resetAttackMaps();
+		resetPawnMaps();
+		resetMaps();
 	}
 
-	std::bitset<64> ChessLogic::generateLegalMoves(int i, int j)
+	std::bitset<64> ChessLogic::generateMoves(int i, int j)
 	{
 		std::bitset<64> attackMoves;
 
@@ -63,17 +64,49 @@ namespace ChessEngine {
 			break;
 		}
 
-		//generationCheckMaps(_chessBoard);
-		if (abs(_chessBoard[i][j].type) != WHITE_KING) {
-			if ((CheckPhase) && (checkMaps.size() >= 2)) {
-				attackMoves.reset();
-			}
-			else if ((CheckPhase) && (checkMaps.size() == 1) && (abs(_chessBoard[i][j].type) != WHITE_KING)) {
-				attackMoves &= checkMaps[0];
-			}
-		}
-
 		return attackMoves;
+	}
+
+	std::bitset<64> ChessLogic::generateLegalMoves(int i, int j, std::bitset<64> attackMoves) {
+		if ((CheckPhase) && (checkMaps.size() >= 2) && (pieceColour(_chessBoard[i][j].type) == whoseTurn)) {
+			attackMoves.reset();
+		}
+		else if ((CheckPhase) && (checkMaps.size() == 1 && (pieceColour(_chessBoard[i][j].type) == whoseTurn))) {
+			attackMoves &= checkMaps[0];
+		}
+		
+		return attackMoves;
+	}
+
+	void ChessLogic::resetMaps() {
+		std::bitset<64> AuxMap;
+		resetPawnMaps();
+
+		for (int i = 0; i < 8; i++)
+			for (int j = 0; j < 8; j++) {
+				AuxMap = generateMoves(i, j);
+				if (abs(_chessBoard[i][j].type) != WHITE_KING) _chessBoard[i][j].attackMap = generateLegalMoves(i, j, AuxMap);
+				else _chessBoard[i][j].attackMap = AuxMap;
+			}
+	}
+
+	void ChessLogic::resetPawnMaps() {
+		for (int i = 0; i < 8; i++) 
+			for (int j = 0; j < 8; j++) {
+				if (_chessBoard[i][j].type == WHITE_PAWN) {
+					if (i != 0) {
+						whitePawnMap.set((i - 1) * 8 + j + 1, true);
+						whitePawnMap.set((i - 1) * 8 + j - 1, true);
+					}
+				}
+				else if (_chessBoard[i][j].type == BLACK_PAWN) {
+					if (i != 7) {
+						blackPawnMap.set((i + 1) * 8 + j + 1, true);
+						blackPawnMap.set((i + 1) * 8 + j - 1, true);
+					}
+				}
+			}
+		
 	}
 
 	std::vector<std::pair<int, int>> ChessLogic::GUILegalMoves(int i, int j) {
@@ -124,13 +157,15 @@ namespace ChessEngine {
 	}
 
 	void ChessLogic::makeMove(int fromi, int fromj, int toi, int toj) {
+		if (_chessBoard[toi][toj].type == WHITE_KING) WhiteKingPos = std::make_pair(toi, toj);
+		if (_chessBoard[toi][toj].type == BLACK_KING) BlackKingPos = std::make_pair(toi, toj);
 		_chessBoard[toi][toj] = _chessBoard[fromi][fromj];
 		_chessBoard[fromi][fromj].type = EMPTY_PIECE;
 		_chessBoard[fromi][fromj].attackMap.reset();
 		whoseTurn *= -1;
-		resetAttackMaps();
+		resetMaps();
 		generationCheckMaps(_chessBoard);
-		resetAttackMaps();
+		resetMaps();
 	}
 
 	std::bitset<64> ChessLogic::horizontalMoveCreation(int i, int j) {
@@ -286,11 +321,22 @@ namespace ChessEngine {
 
 		for (int i = 0; i < 8; i++)
 			for (int j = 0; j < 8; j++)
-				if ((pieceColour(_chessBoard[i][j].type) != whoseTurn))
+				if ((pieceColour(_chessBoard[i][j].type) != whoseTurn) && (abs(_chessBoard[i][j].type) != WHITE_PAWN))
 					checkMoves |= _chessBoard[i][j].attackMap;
 
 		checkMoves.flip();
 		attackMoves &= checkMoves;
+
+		if (whoseTurn == WHITE) {
+			checkMoves = blackPawnMap;
+			checkMoves.flip();
+			attackMoves &= checkMoves;
+		}
+		else {
+			checkMoves = whitePawnMap;
+			checkMoves.flip();
+			attackMoves &= checkMoves;
+		}
 
 		return attackMoves;
 	}
@@ -348,11 +394,6 @@ namespace ChessEngine {
 		return attackMoves;
 	}
 
-	void ChessLogic::resetAttackMaps() {
-		for (int i = 0; i < 8; i++)
-			for (int j = 0; j < 8; j++)
-				_chessBoard[i][j].attackMap = generateLegalMoves(i, j);
-	}
 
 	std::bitset<64> ChessLogic::streamGenerator(int toi, int toj, int fromi, int fromj) {
 		int forI, forJ;
@@ -412,9 +453,10 @@ namespace ChessEngine {
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
 				if (boardToCheck[i][j].attackMap.test(WhiteKingPos.first * 8 + WhiteKingPos.second) && whoseTurn == WHITE) {
-					if (abs(boardToCheck[i][j].type) == WHITE_BISHOP || abs(boardToCheck[i][j].type) == WHITE_ROOK || abs(boardToCheck[i][j].type) == WHITE_QUEEN)
+					if (boardToCheck[i][j].type == BLACK_BISHOP || boardToCheck[i][j].type == BLACK_ROOK || boardToCheck[i][j].type == BLACK_QUEEN)
 						checkMaps.push_back(streamGenerator(i, j, WhiteKingPos.first, WhiteKingPos.second));
-					else if (abs(boardToCheck[i][j].type) == WHITE_PAWN || abs(boardToCheck[i][j].type) == WHITE_KNIGHT) {
+
+					else if (boardToCheck[i][j].type == BLACK_PAWN || boardToCheck[i][j].type == BLACK_KNIGHT) {
 						CheckMap.set(i * 8 + j);
 						checkMaps.push_back(CheckMap);
 						CheckMap.reset();
@@ -422,9 +464,10 @@ namespace ChessEngine {
 					
 				}
 				else if (boardToCheck[i][j].attackMap.test(BlackKingPos.first * 8 + BlackKingPos.second) && whoseTurn == BLACK) {
-					if (abs(boardToCheck[i][j].type) == WHITE_BISHOP || abs(boardToCheck[i][j].type) == WHITE_ROOK || abs(boardToCheck[i][j].type) == WHITE_QUEEN)
+					if (boardToCheck[i][j].type == WHITE_BISHOP || boardToCheck[i][j].type == WHITE_ROOK || boardToCheck[i][j].type == WHITE_QUEEN)
 						checkMaps.push_back(streamGenerator(i, j, BlackKingPos.first, BlackKingPos.second));
-					else if (abs(boardToCheck[i][j].type) == WHITE_PAWN || abs(boardToCheck[i][j].type) == WHITE_KNIGHT) {
+
+					else if (boardToCheck[i][j].type == WHITE_PAWN || boardToCheck[i][j].type == WHITE_KNIGHT) {
 						CheckMap.set(i * 8 + j);
 						checkMaps.push_back(CheckMap);
 						CheckMap.reset();
