@@ -362,7 +362,7 @@ namespace ChessEngine {
 		}
 		else {
 			checkMoves = whitePawnMap;
-			checkMoves = whiteDefendMap;
+			checkMoves |= whiteDefendMap;
 			checkMoves.flip();
 			attackMoves &= checkMoves;
 		}
