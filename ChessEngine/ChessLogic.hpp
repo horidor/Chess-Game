@@ -34,6 +34,7 @@ namespace ChessEngine {
 			std::bitset<64> attackMap;
 			int8_t type;
 			std::pair<int, int> position;
+			std::bitset<64> pinMap;
 		};
 
 		Piece checkCheckingPiece;
@@ -64,7 +65,8 @@ namespace ChessEngine {
 
 		bool isEnd();
 
-		void generationCheckMaps(pieceBoard& boardToCheck);
+		void generationCheckMaps();
+		void generationPinMaps();
 
 		std::vector<std::bitset<64>> checkMaps;
 
