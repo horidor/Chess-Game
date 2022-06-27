@@ -23,6 +23,7 @@ namespace ChessEngine {
 
 		enum PieceColour {
 			BLACK = -1,
+			NONE = 0,
 			WHITE = 1
 		};
 
@@ -56,6 +57,9 @@ namespace ChessEngine {
 		std::bitset<64> whitePawnMap;
 		std::bitset<64> blackPawnMap;
 
+		std::bitset<64> whiteDefendMap;
+		std::bitset<64> blackDefendMap;
+
 		std::bitset<64> streamGenerator(int toi, int toj, int fromi, int fromj);
 
 		bool isEnd();
@@ -71,6 +75,7 @@ namespace ChessEngine {
 		bool isBlocking(int i, int j, int anotheri, int anoterj);
 		bool isEnemy(int i, int j, int anotheri, int anoterj);
 		bool isAlly(int i, int j, int checkedfori, int checkedforj);
+		void defendMapSetup(int i, int j, int checkedfori, int checkedforj);
 
 	};
 }

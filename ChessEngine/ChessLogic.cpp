@@ -109,15 +109,18 @@ namespace ChessEngine {
 		
 	}
 
+	void ChessLogic::defendMapSetup(int i, int j, int checkedfori, int checkedforj) {
+		if (isAlly(i, j, checkedfori, checkedforj)) {
+			if (pieceColour(_chessBoard[checkedfori][checkedforj].type) == WHITE)
+				whiteDefendMap.set(i * 8 + j);
+			else if (pieceColour(_chessBoard[checkedfori][checkedforj].type) == BLACK)
+				blackDefendMap.set(i * 8 + j);
+		}
+	}
+
 	std::vector<std::pair<int, int>> ChessLogic::GUILegalMoves(int i, int j) {
 		std::bitset<64> legalMoves = _chessBoard[i][j].attackMap;
 		std::vector < std::pair <int, int>> legalMovesGUI;
-
-		/*for (auto& it : legalMoves) {
-			for (auto iter : it)
-				std::cout << iter << "  ";
-			std::cout << "\n";
-		}*/
 
 		for (int _i = 0; _i < GRID_SIZE; _i++)
 			for (int _j = 0; _j < GRID_SIZE; _j++)
@@ -129,7 +132,8 @@ namespace ChessEngine {
 
 	int ChessLogic::pieceColour(int piece) {
 		if (piece > 0) return WHITE;
-		return BLACK;
+		else if (piece < 0) return BLACK;
+		return NONE;
 	}
 
 	bool ChessLogic::isBlocking(int i, int j, int checkedfori, int checkedforj) {
@@ -185,6 +189,7 @@ namespace ChessEngine {
 
 		if (isEnemy(verticalAccumN, j, i, j))
 			attackMoves.set((verticalAccumN) * 8 + j);
+		else defendMapSetup(verticalAccumN, j, i, j);
 
 		while (!isBlocking(verticalAccumP, j, i, j))
 		{
@@ -194,6 +199,7 @@ namespace ChessEngine {
 
 		if (isEnemy(verticalAccumP, j, i, j))
 			attackMoves.set((verticalAccumP) * 8 + j);
+		else defendMapSetup(verticalAccumP, j, i, j);
 
 		while (!isBlocking(i, horizontalAccumN, i, j))
 		{
@@ -204,6 +210,8 @@ namespace ChessEngine {
 		if (isEnemy(i, horizontalAccumN, i, j))
 			attackMoves.set(i * 8 + horizontalAccumN);
 
+		else defendMapSetup(i, horizontalAccumN, i, j);
+
 		while (!isBlocking(i, horizontalAccumP, i, j))
 		{
 			attackMoves.set(i * 8 + horizontalAccumP);
@@ -212,6 +220,8 @@ namespace ChessEngine {
 
 		if (isEnemy(i, horizontalAccumP, i, j))
 			attackMoves.set(i * 8 + horizontalAccumP);
+
+		else defendMapSetup(i, horizontalAccumP, i, j);
 
 		return attackMoves;
 	}
@@ -230,6 +240,8 @@ namespace ChessEngine {
 		if (isEnemy(i - Accum, j - Accum, i, j))
 			attackMoves.set((i - Accum) * 8 + (j - Accum));
 
+		else defendMapSetup(i - Accum, j - Accum, i, j);
+
 		Accum = 1;
 
 		while (!isBlocking(i - Accum, j + Accum, i, j))
@@ -240,6 +252,8 @@ namespace ChessEngine {
 
 		if (isEnemy(i - Accum, j + Accum, i, j))
 			attackMoves.set((i - Accum) * 8 + (j + Accum));
+
+		else defendMapSetup(i - Accum, j + Accum, i, j);
 
 		Accum = 1;
 
@@ -252,6 +266,8 @@ namespace ChessEngine {
 		if (isEnemy(i + Accum, j - Accum, i, j))
 			attackMoves.set((i + Accum) * 8 + (j - Accum));
 
+		else defendMapSetup(i + Accum, j - Accum, i, j);
+
 		Accum = 1;
 
 		while (!isBlocking(i + Accum, j + Accum, i, j))
@@ -262,6 +278,8 @@ namespace ChessEngine {
 
 		if (isEnemy(i + Accum, j + Accum, i, j))
 			attackMoves.set((i + Accum) * 8 + (j + Accum));
+
+		else defendMapSetup(i + Accum, j + Accum, i, j);
 
 		return attackMoves;
 
@@ -274,9 +292,10 @@ namespace ChessEngine {
 			if (c >= 0 && c < 8) {
 				for (int k = j - 1; k < j + 2; k++) {
 					if (k >= 0 && k < 8) {
-						if (!isBlocking(c, k, i, j) || isEnemy(c, k, i, j))
+						if (!isBlocking(c, k, i, j) || isEnemy(c, k, i, j)) {
 							attackMoves.set(c * 8 + k);
-
+							defendMapSetup(c, k, i, j);
+						}
 					}
 				}
 			}
@@ -292,8 +311,10 @@ namespace ChessEngine {
 			if (c >= 0 && c < 8) {
 				for (int k = j - 1; k < j + 2; k += 2) {
 					if (k >= 0 && k < 8) {
-						if (!isBlocking(c, k, i, j) || isEnemy(c, k, i, j))
+						if (!isBlocking(c, k, i, j) || isEnemy(c, k, i, j)) {
 							attackMoves.set(c * 8 + k);
+							defendMapSetup(c, k, i, j);
+						}	
 					}
 				}
 			}
@@ -303,8 +324,10 @@ namespace ChessEngine {
 			if (c >= 0 && c < 8) {
 				for (int k = j - 2; k <= j + 2; k += 4) {
 					if (k >= 0 && k < 8) {
-						if (!isBlocking(c, k, i, j) || isEnemy(c, k, i, j))
+						if (!isBlocking(c, k, i, j) || isEnemy(c, k, i, j)) {
 							attackMoves.set(c * 8 + k);
+							defendMapSetup(c, k, i, j);
+						}
 					}
 				}
 			}
@@ -320,20 +343,26 @@ namespace ChessEngine {
 		attackMoves |= aroundMoveCreation(i, j);
 
 		for (int i = 0; i < 8; i++)
-			for (int j = 0; j < 8; j++)
-				if ((pieceColour(_chessBoard[i][j].type) != whoseTurn) && (abs(_chessBoard[i][j].type) != WHITE_PAWN))
+			for (int j = 0; j < 8; j++) {
+				if ((pieceColour(_chessBoard[i][j].type) != whoseTurn) && (abs(_chessBoard[i][j].type) != WHITE_PAWN) && (abs(_chessBoard[i][j].type) != WHITE_KING))
 					checkMoves |= _chessBoard[i][j].attackMap;
+
+				else if ((pieceColour(_chessBoard[i][j].type) != whoseTurn) && (abs(_chessBoard[i][j].type) == WHITE_KING))
+					checkMoves |= aroundMoveCreation(i, j);
+			}
 
 		checkMoves.flip();
 		attackMoves &= checkMoves;
 
 		if (whoseTurn == WHITE) {
 			checkMoves = blackPawnMap;
+			checkMoves |= blackDefendMap;
 			checkMoves.flip();
 			attackMoves &= checkMoves;
 		}
 		else {
 			checkMoves = whitePawnMap;
+			checkMoves = whiteDefendMap;
 			checkMoves.flip();
 			attackMoves &= checkMoves;
 		}
