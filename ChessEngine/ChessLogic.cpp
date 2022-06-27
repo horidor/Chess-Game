@@ -97,6 +97,8 @@ namespace ChessEngine {
 	}
 
 	void ChessLogic::resetPawnMaps() {
+		whitePawnMap.reset();
+		blackPawnMap.reset();
 		for (int i = 0; i < 8; i++) 
 			for (int j = 0; j < 8; j++) {
 				if (_chessBoard[i][j].type == WHITE_PAWN) {
@@ -166,9 +168,23 @@ namespace ChessEngine {
 		return false;
 	}
 
+	void ChessLogic::enPassantCheck(int fromi, int fromj, int toi, int toj) {
+		enPassanttoPass = std::make_pair(-1, -1);
+		if ((toi == enPassant.first - 1 || toi == enPassant.second + 1) && toj == enPassant.second && abs(_chessBoard[fromi][fromj].type == WHITE_PAWN)) {
+			_chessBoard[enPassant.first][enPassant.second].type = EMPTY_PIECE;
+			enPassanttoPass = enPassant;
+		}
+		else if (abs(_chessBoard[fromi][fromj].type) == WHITE_PAWN && abs(fromi - toi) == 2) {
+			enPassant = std::make_pair(toi, toj);
+			return;
+		}
+		enPassant = std::make_pair(-1, -1);
+	}
+
 	void ChessLogic::makeMove(int fromi, int fromj, int toi, int toj) {
 		if (_chessBoard[toi][toj].type == WHITE_KING) WhiteKingPos = std::make_pair(toi, toj);
 		if (_chessBoard[toi][toj].type == BLACK_KING) BlackKingPos = std::make_pair(toi, toj);
+		enPassantCheck(fromi, fromj, toi, toj);
 		_chessBoard[toi][toj] = _chessBoard[fromi][fromj];
 		_chessBoard[fromi][fromj].type = EMPTY_PIECE;
 		_chessBoard[fromi][fromj].attackMap.reset();
@@ -402,6 +418,13 @@ namespace ChessEngine {
 					if (isEnemy(i + 1, j - 1, i, j))
 						attackMoves.set((i + 1) * 8 + j - 1);
 				}
+
+				if (isEnemy(enPassant.first, enPassant.second, i, j)) {
+					if (i == enPassant.first) {
+						if (j == enPassant.second - 1 || j == enPassant.second + 1)
+							attackMoves.set((enPassant.first + 1) * 8 + enPassant.second);
+					}
+				}
 			}
 			break;
 		case WHITE:
@@ -423,6 +446,13 @@ namespace ChessEngine {
 				if (j > 0) {
 					if (isEnemy(i - 1, j - 1, i, j) && j > 0)
 						attackMoves.set((i - 1) * 8 + j - 1);
+				}
+
+				if (isEnemy(enPassant.first, enPassant.second, i, j)) {
+					if (i == enPassant.first) {
+						if (j == enPassant.second - 1 || j == enPassant.second + 1)
+							attackMoves.set((enPassant.first - 1) * 8 + enPassant.second);
+					}
 				}
 			}
 		}

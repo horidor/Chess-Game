@@ -17,6 +17,8 @@ namespace ChessEngine {
 
 		bool getEnd() { return isEnd(); }
 
+		std::pair<int, int> enPassantOuter() { return enPassanttoPass; }
+
 
 	private:
 		
@@ -29,6 +31,13 @@ namespace ChessEngine {
 
 		int whoseTurn = WHITE;
 		bool CheckPhase = false;
+		std::pair<int, int> enPassant = std::make_pair(-1, -1);
+		std::pair<int, int> enPassanttoPass = std::make_pair(-1, -1);
+
+		std::vector<std::bitset<64>> checkMaps;
+
+		std::pair<int, int> WhiteKingPos;
+		std::pair<int, int> BlackKingPos;
 
 		struct Piece {
 			std::bitset<64> attackMap;
@@ -68,10 +77,11 @@ namespace ChessEngine {
 		void generationCheckMaps();
 		void generationPinMaps();
 
-		std::vector<std::bitset<64>> checkMaps;
+		void enPassantCheck(int fromi, int fromj, int toi, int toj);
 
-		std::pair<int, int> WhiteKingPos;
-		std::pair<int, int> BlackKingPos;
+		
+
+
 
 		int pieceColour(int piece);
 		bool isBlocking(int i, int j, int anotheri, int anoterj);

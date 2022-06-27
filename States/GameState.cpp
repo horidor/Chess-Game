@@ -284,6 +284,8 @@ namespace ChessGUI
 			////////////////////
 
 			chessLogic->makeMove(_chosenPiece.x, _chosenPiece.y, row, column);
+			std::pair<int, int> enPassant = chessLogic->enPassantOuter();
+			if (enPassant.first != -1) _gridPieces[enPassant.first][enPassant.second].setColor(sf::Color(255, 255, 255, 0));
 
 			sf::IntRect pieceRect = _gridPieces[_chosenPiece.x][_chosenPiece.y].getTextureRect();
 			_gridPieces[row][column].setTexture(_ChessPieces);
