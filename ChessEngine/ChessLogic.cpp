@@ -460,7 +460,7 @@ namespace ChessEngine {
 
 				if (i == 1)
 				{
-					if (!isBlocking(i + 2, j, i, j))
+					if (!isBlocking(i + 2, j, i, j) && (!isBlocking(i + 1, j, i, j)))
 						attackMoves.set((i + 2) * 8 + j);
 				}
 
@@ -490,7 +490,7 @@ namespace ChessEngine {
 
 				if (i == 6)
 				{
-					if (!isBlocking(i - 2, j, i, j))
+					if (!isBlocking(i - 2, j, i, j) && (!isBlocking(i - 1, j, i, j)))
 						attackMoves.set((i - 2) * 8 + j);
 				}
 

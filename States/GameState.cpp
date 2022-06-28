@@ -21,12 +21,14 @@ namespace ChessGUI
 			this->_gameState = STATE_ANOTHER_CHOOSING;
 			this->_playerColor = BLACK_QUEEN;
 			this->_anotherColor = WHITE_QUEEN;
+			_movingColour = _anotherColor;
 		}
 		else if (this->_data->firsttoPlay == "player")
 		{
 			this->_gameState = STATE_PLAYER_CHOOSING;
 			this->_playerColor = WHITE_QUEEN;
 			this->_anotherColor = BLACK_QUEEN;
+			_movingColour = _playerColor;
 		}
 
 
@@ -47,19 +49,41 @@ namespace ChessGUI
 		_gridSprite.setTexture(this->_data->assets.GetTexture("Grid Sprite"));
 		_pauseButton.setPosition(SCREEN_WIDTH - _pauseButton.getGlobalBounds().width + 5, 13);
 
+		sf::IntRect piecePosition;
+		piecePosition.height = piecePosition.width = 60;
+		piecePosition.top = 0;
 		char Arrangement[4]{ 'Q','R','k','B' };
+
+		_promotePos.left = SCREEN_WIDTH - _pauseButton.getGlobalBounds().width + 5;
+		_promotePos.top = _pauseButton.getGlobalBounds().height + 13 + 70;
+		_promotePos.width = 60;
+		_promotePos.height = 70 * 8;
+
 		for (int j = 0; j < 4; j++) {
-			_promotionSelection[j].setPosition(SCREEN_WIDTH - _pauseButton.getGlobalBounds().width + 5, 13 + 70 * j);
+			piecePosition.top = 0;
+			_promotionSelection[j].setTexture(_ChessPieces);
+			_promotionSelection[j+4].setTexture(_ChessPieces);
 			switch (Arrangement[j]) {
 			case 'Q':
+				piecePosition.left = 0;
 				break;
 			case 'R':
+				piecePosition.left = 120;
 				break;
 			case 'k':
+				piecePosition.left = 180;
 				break;
 			case 'B':
+				piecePosition.left = 240;
 				break;
 			}
+			_promotionSelection[j].setTextureRect(piecePosition);
+			_promotionSelection[j].setPosition(_promotePos.left, _promotePos.top + 70 * j);
+			//_promotionSelection[j+4].setColor(sf::Color(255, 255, 255, 0));
+			piecePosition.top = 60;
+			_promotionSelection[j+4].setTextureRect(piecePosition);
+			_promotionSelection[j+4].setPosition(_promotePos.left, _promotePos.top + 70 * (j+4));
+			//_promotionSelection[j+4].setColor(sf::Color(255, 255, 255, 0));
 		}
 		
 		sf::Vector2i tileMeas(this->_data->assets.GetTexture("Black Tile").getSize().x,
@@ -91,8 +115,17 @@ namespace ChessGUI
 					if (this->_data->input.isAreaClicked(this->_pauseButton, sf::Mouse::Left, this->_data->window))
 						this->_data->machine.AddState(StateRef(new PauseState(_data)), false);
 
-					else if (this->_data->input.isAreaClicked(this->_gridPos, sf::Mouse::Left, this->_data->window))
-						this->CheckAndPlacePieces(touchPoint);
+					else if (this->_data->input.isAreaClicked(this->_gridPos, sf::Mouse::Left, this->_data->window)) {
+						if (!blockBoardInput) {
+							this->CheckAndPlacePieces(touchPoint);
+						}
+					}
+					
+					else if (this->_data->input.isAreaClicked(this->_promotePos, sf::Mouse::Left, this->_data->window)) {
+						if (blockBoardInput) {
+							this->GUIPromotion(touchPoint);
+						}
+					}
 
 					break;
 				default:
@@ -125,6 +158,15 @@ namespace ChessGUI
 			{
 				this->_data->window.draw(this->_gridSelection[x][y]);
 				this->_data->window.draw(this->_gridPieces[x][y]);
+			}
+		}
+
+		for (int i = 0; i < 4; i++) {
+			if (blockBoardInput) {
+				if (_whoseTurn == WHITE)
+					this->_data->window.draw(this->_promotionSelection[i + 4]);
+				else if (_whoseTurn == BLACK)
+					this->_data->window.draw(this->_promotionSelection[i]);
 			}
 		}
 
@@ -343,26 +385,28 @@ namespace ChessGUI
 			_gridArray[_chosenPiece.x][_chosenPiece.y] = EMPTY_PIECE;
 
 			if (_gridArray[row][column] == WHITE_PAWN && row == 0) {
-				int type = GUIPromotion(row, column);
-				chessLogic->promoteTo(row, column, type);
+				promotionPair = std::make_pair(row, column);
+				blockBoardInput = true;
 			}
-
-			if (_gridArray[row][column] == BLACK_PAWN && row == 7) {
-				int type = GUIPromotion(row, column);
-				chessLogic->promoteTo(row, column, type);
-			}
-
-
-			if (movingColor == _playerColor) {
-				_gameState = STATE_ANOTHER_CHOOSING;
+			else if (_gridArray[row][column] == BLACK_PAWN && row == 7) {
+				promotionPair = std::make_pair(row, column);
+				blockBoardInput = true;
 			}
 			else {
-				_gameState = STATE_PLAYER_CHOOSING;
-			}
 
+				if (movingColor == _playerColor) {
+					_gameState = STATE_ANOTHER_CHOOSING;
+					_movingColour = _anotherColor;
+				}
+				else {
+					_gameState = STATE_PLAYER_CHOOSING;
+					_movingColour = _playerColor;
+				}
+				
+				_whoseTurn *= -1;
+			}
 			legalMoves.clear();
 			_chosenPiece.x = -1; _chosenPiece.y = -1;
-
 		}
 	}
 
@@ -380,10 +424,60 @@ namespace ChessGUI
 		}
 	}
 
-	int GameState::GUIPromotion(int row, int column) {
+	void GameState::GUIPromotion(sf::Vector2i _touch) {
 		
-		return 0;
-	}
+		int index = (_touch.y - _promotePos.top) / 70;
+		if (((index < 4 && _whoseTurn == BLACK) || (index >= 4 && _whoseTurn == WHITE)) && (index < 8)) {
+			int i = promotionPair.first;
+			int j = promotionPair.second;
 
+			_gridPieces[i][j].setTextureRect(_promotionSelection[index].getTextureRect());
+
+			switch (index) {
+			case 0:
+				_gridArray[i][j] = BLACK_QUEEN;
+				chessLogic->promoteTo(i, j, BLACK_QUEEN);
+				break;
+			case 2:
+				_gridArray[i][j] = BLACK_ROOK;
+				chessLogic->promoteTo(i, j, BLACK_ROOK);
+				break;
+			case 3:
+				_gridArray[i][j] = BLACK_KNIGHT;
+				chessLogic->promoteTo(i, j, BLACK_KNIGHT);
+				break;
+			case 4:
+				_gridArray[i][j] = BLACK_BISHOP;
+				chessLogic->promoteTo(i, j, BLACK_BISHOP);
+				break;
+			case 5:
+				_gridArray[i][j] = WHITE_QUEEN;
+				chessLogic->promoteTo(i, j, WHITE_QUEEN);
+				break;
+			case 6:
+				_gridArray[i][j] = WHITE_ROOK;
+				chessLogic->promoteTo(i, j, WHITE_ROOK);
+				break;
+			case 7:
+				_gridArray[i][j] = WHITE_BISHOP;
+				chessLogic->promoteTo(i, j, WHITE_BISHOP);
+				break;
+			}
+
+			if (_movingColour == _playerColor) {
+				_gameState = STATE_ANOTHER_CHOOSING;
+				_movingColour = _anotherColor;
+			}
+			else {
+				_gameState = STATE_PLAYER_CHOOSING;
+				_movingColour = _playerColor;
+			}
+
+			_chosenPiece.x = -1; _chosenPiece.y = -1;
+			_whoseTurn *= -1;
+			blockBoardInput = false;
+		}
+
+	}
 }
 

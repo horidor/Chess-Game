@@ -23,14 +23,11 @@ namespace ChessEngine {
 
 
 	private:
-		
-
 		enum PieceColour {
 			BLACK = -1,
 			NONE = 0,
 			WHITE = 1
 		};
-
 		int whoseTurn = WHITE;
 		bool CheckPhase = false;
 		std::pair<int, int> enPassant = std::make_pair(-1, -1);

@@ -18,6 +18,12 @@ namespace ChessGUI
 		void Update(float dt);
 		void Draw(float dt);
 	private:
+		enum PieceColour {
+			BLACK = -1,
+			NONE = 0,
+			WHITE = 1
+		};
+
 		void InitGridPiece();
 		void CheckAndPlacePieces(sf::Vector2i touchPoint);
 
@@ -28,7 +34,7 @@ namespace ChessGUI
 
 		void endCheck(int movingColour);
 
-		int GUIPromotion(int row, int column);
+		void GUIPromotion(sf::Vector2i _touch);
 
 		GameDataRef _data;
 		sf::Sprite _background;
@@ -36,7 +42,7 @@ namespace ChessGUI
 		sf::Sprite _gridSprite;
 		sf::Sprite _gridPieces[8][8];
 		sf::Sprite _gridSelection[8][8];
-		sf::Sprite _promotionSelection[4];
+		sf::Sprite _promotionSelection[8];
 		 
 		sf::Texture _ChessPieces;
 		sf::Clock _clock;
@@ -44,8 +50,13 @@ namespace ChessGUI
 
 		int _gameState;
 		int _playerColor, _anotherColor;
+		int _whoseTurn = WHITE;
+		int _movingColour;
+		bool blockBoardInput = false;
+		std::pair<int, int> promotionPair;
 
 		sf::IntRect _gridPos;
+		sf::IntRect _promotePos;
 		sf::Vector2i _chosenPiece;
 		
 		std::unique_ptr<AI> ai;
