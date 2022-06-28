@@ -17,27 +17,35 @@ namespace ChessGUI
 	{
 		this->_data->assets.LoadTexture("Retry Button", RETRY_BUTTON);
 		this->_data->assets.LoadTexture("Home Button", HOME_BUTTON);
+		this->_data->assets.LoadFont("Courier New", COURIERNEW_BOLD_FONT);
 
 		this->_retryButton.setTexture(this->_data->assets.GetTexture("Retry Button"));
 		this->_homeButton.setTexture(this->_data->assets.GetTexture("Home Button"));
+		this->_GameOverText.setFont(this->_data->assets.GetFont("Courier New"));
 
 		if (this->_gameState == STATE_WON)
 		{
-			this->_data->assets.LoadTexture("You Won", SPRITE_WON_FILEPATH);
-			this->_result.setTexture(this->_data->assets.GetTexture("You Won"));
+			this->_GameOverText.setString("You Won!");
 		}
-		else
+		else if (this->_gameState == STATE_LOSE)
 		{
-			this->_data->assets.LoadTexture("You Lose", SPRITE_LOSE_FILEPATH);
-			this->_result.setTexture(this->_data->assets.GetTexture("You Lose"));
+			this->_GameOverText.setString("You Lose!");
 		}
+		else {
+			this->_GameOverText.setString("Draw!");
+		}
+
+		this->_GameOverText.setCharacterSize(72);
+		this->_GameOverText.setFillColor(sf::Color::White);
+		this->_GameOverText.setOutlineColor(sf::Color::Black);
+		this->_GameOverText.setOutlineThickness(0.2f);
 
 		this->_retryButton.setPosition(this->_data->window.getSize().x / 2 - this->_retryButton.getLocalBounds().width / 2 - 170,
 			                           this->_data->window.getSize().y / 2 + this->_retryButton.getLocalBounds().height / 2);
 		this->_homeButton.setPosition(this->_data->window.getSize().x / 2 - this->_homeButton.getLocalBounds().width / 2 + 170,
 			                          this->_data->window.getSize().y / 2 + this->_homeButton.getLocalBounds().height / 2);
-		this->_result.setPosition(this->_data->window.getSize().x / 2 - this->_result.getLocalBounds().width / 2,
-			                      this->_data->window.getSize().y / 2 - this->_result.getLocalBounds().height * 1.5);
+		this->_GameOverText.setPosition(this->_data->window.getSize().x / 2 - this->_GameOverText.getLocalBounds().width / 2,
+			                      this->_data->window.getSize().y / 2 - this->_GameOverText.getLocalBounds().height * 1.5);
 	}
 
 	void GameOverState::HandleInput()
@@ -74,7 +82,7 @@ namespace ChessGUI
 		this->_data->window.clear(sf::Color(255, 36, 70, 1));
 		this->_data->window.draw(this->_retryButton);
 		this->_data->window.draw(this->_homeButton);
-		this->_data->window.draw(this->_result);
+		this->_data->window.draw(this->_GameOverText);
 		this->_data->window.display();
 	}
 }

@@ -137,7 +137,7 @@ namespace ChessGUI
 
 	void GameState::Update(float dt)
 	{
-		if (_gameState == STATE_LOSE || _gameState == STATE_WON)
+		if (_gameState == STATE_LOSE || _gameState == STATE_WON || _gameState == STATE_DRAW)
 		{
 			if (this->_clock.getElapsedTime().asSeconds() > TIME_BEFORE_SHOWING_GAME_OVER)
 			{
@@ -419,8 +419,13 @@ namespace ChessGUI
 
 	void GameState::endCheck(int movingColour) {
 		if (chessLogic->getEnd()) {
-			if (movingColour == _playerColor) _gameState = STATE_LOSE;
-			else if (movingColour == _anotherColor) _gameState = STATE_WON;
+			if (chessLogic->isCheck()) {
+				if (movingColour == _playerColor) _gameState = STATE_LOSE;
+				else if (movingColour == _anotherColor) _gameState = STATE_WON;
+			}
+			else {
+				_gameState = STATE_DRAW;
+			}
 		}
 	}
 

@@ -19,6 +19,7 @@ namespace ChessGUI
 		sf::Sprite _retryButton;
 		sf::Sprite _homeButton;
 		sf::Sprite _result;
+		sf::Text _GameOverText;
 		int _gameState;
 	};
 }

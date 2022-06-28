@@ -17,6 +17,7 @@ namespace ChessEngine {
 		void promoteTo(int i, int j, int type);
 
 		bool getEnd() { return isEnd(); }
+		bool isCheck() { return CheckPhase; }
 
 		std::pair<int, int> enPassantOuter() { return enPassanttoPass; }
 		std::pair<int, int> castlingOuter() { return castlingMove;  }
@@ -86,7 +87,6 @@ namespace ChessEngine {
 
 		void AddCastlingMoves();
 		void PerformCastlingMoves(int toi, int toj);
-
 
 
 		int pieceColour(int piece);
