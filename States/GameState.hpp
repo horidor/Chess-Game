@@ -28,12 +28,15 @@ namespace ChessGUI
 
 		void endCheck(int movingColour);
 
+		int GUIPromotion(int row, int column);
+
 		GameDataRef _data;
 		sf::Sprite _background;
 		sf::Sprite _pauseButton;
 		sf::Sprite _gridSprite;
 		sf::Sprite _gridPieces[8][8];
 		sf::Sprite _gridSelection[8][8];
+		sf::Sprite _promotionSelection[4];
 		 
 		sf::Texture _ChessPieces;
 		sf::Clock _clock;

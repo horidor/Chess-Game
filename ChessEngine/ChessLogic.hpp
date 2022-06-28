@@ -14,10 +14,12 @@ namespace ChessEngine {
 		
 		std::vector<std::pair<int, int>> GUILegalMoves(int i, int j);
 		void makeMove(int fromi, int fromj, int toi, int toj);
+		void promoteTo(int i, int j, int type);
 
 		bool getEnd() { return isEnd(); }
 
 		std::pair<int, int> enPassantOuter() { return enPassanttoPass; }
+		std::pair<int, int> castlingOuter() { return castlingMove;  }
 
 
 	private:
@@ -33,6 +35,10 @@ namespace ChessEngine {
 		bool CheckPhase = false;
 		std::pair<int, int> enPassant = std::make_pair(-1, -1);
 		std::pair<int, int> enPassanttoPass = std::make_pair(-1, -1);
+		std::pair<int, int> castlingMove = std::make_pair(-1, -1);
+
+		bool castlingWhiteLong = false, castlingWhiteShort = false, castlingWhiteLongF = true, castlingWhiteShortF = true;
+		bool castlingBlackLong = false, castlingBlackShort = false, castlingBlackLongF = true, castlingBlackShortF = true;
 
 		std::vector<std::bitset<64>> checkMaps;
 
@@ -79,7 +85,10 @@ namespace ChessEngine {
 
 		void enPassantCheck(int fromi, int fromj, int toi, int toj);
 
-		
+		void castlingCheck(int toi, int toj, int fromi = -1, int fromj = -1);
+
+		void AddCastlingMoves();
+		void PerformCastlingMoves(int toi, int toj);
 
 
 

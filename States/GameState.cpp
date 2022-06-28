@@ -31,7 +31,7 @@ namespace ChessGUI
 
 
 		this->ai = std::make_unique<AI>(_data);
-		
+
 		this->_data->assets.LoadTexture("Pause Button", PAUSE_BUTTON);
 		this->_data->assets.LoadTexture("Grid Sprite", GRID_SPRITE_FILEPATH);
 		this->_data->assets.LoadTexture("Black Tile", BLACK_TILE);
@@ -46,6 +46,21 @@ namespace ChessGUI
 		_pauseButton.setTexture(this->_data->assets.GetTexture("Pause Button"));
 		_gridSprite.setTexture(this->_data->assets.GetTexture("Grid Sprite"));
 		_pauseButton.setPosition(SCREEN_WIDTH - _pauseButton.getGlobalBounds().width + 5, 13);
+
+		char Arrangement[4]{ 'Q','R','k','B' };
+		for (int j = 0; j < 4; j++) {
+			_promotionSelection[j].setPosition(SCREEN_WIDTH - _pauseButton.getGlobalBounds().width + 5, 13 + 70 * j);
+			switch (Arrangement[j]) {
+			case 'Q':
+				break;
+			case 'R':
+				break;
+			case 'k':
+				break;
+			case 'B':
+				break;
+			}
+		}
 		
 		sf::Vector2i tileMeas(this->_data->assets.GetTexture("Black Tile").getSize().x,
 			this->_data->assets.GetTexture("Black Tile").getSize().y);
@@ -285,7 +300,33 @@ namespace ChessGUI
 
 			chessLogic->makeMove(_chosenPiece.x, _chosenPiece.y, row, column);
 			std::pair<int, int> enPassant = chessLogic->enPassantOuter();
-			if (enPassant.first != -1) _gridPieces[enPassant.first][enPassant.second].setColor(sf::Color(255, 255, 255, 0));
+			if (enPassant.first != -1) {
+				_gridPieces[enPassant.first][enPassant.second].setColor(sf::Color(255, 255, 255, 0));
+				_gridArray[enPassant.first][enPassant.second] = EMPTY_PIECE;
+			}
+			std::pair<int, int> castlingMove = chessLogic->castlingOuter();
+
+			if (castlingMove.first != -1) {
+				if (castlingMove.second == 3) {
+					sf::IntRect pieceRect = _gridPieces[castlingMove.first][castlingMove.second - 3].getTextureRect();
+					_gridPieces[castlingMove.first][castlingMove.second - 3].setColor(sf::Color(255, 255, 255, 0));
+					_gridPieces[castlingMove.first][castlingMove.second].setTexture(_ChessPieces);
+					_gridPieces[castlingMove.first][castlingMove.second].setTextureRect(pieceRect);
+					_gridPieces[castlingMove.first][castlingMove.second].setColor(sf::Color(255, 255, 255, 255));
+					_gridArray[castlingMove.first][castlingMove.second] = _gridArray[castlingMove.first][castlingMove.second - 3];
+					_gridArray[castlingMove.first][castlingMove.second - 3] = EMPTY_PIECE;
+				}
+				else if (castlingMove.second == 5) {
+					sf::IntRect pieceRect = _gridPieces[castlingMove.first][castlingMove.second + 2].getTextureRect();
+					_gridPieces[castlingMove.first][castlingMove.second + 2].setColor(sf::Color(255, 255, 255, 0));
+					_gridPieces[castlingMove.first][castlingMove.second].setTexture(_ChessPieces);
+					_gridPieces[castlingMove.first][castlingMove.second].setTextureRect(pieceRect);
+					_gridPieces[castlingMove.first][castlingMove.second].setColor(sf::Color(255, 255, 255, 255));
+					_gridArray[castlingMove.first][castlingMove.second] = _gridArray[castlingMove.first][castlingMove.second + 2];
+					_gridArray[castlingMove.first][castlingMove.second + 2] = EMPTY_PIECE;
+				}
+			}
+
 
 			sf::IntRect pieceRect = _gridPieces[_chosenPiece.x][_chosenPiece.y].getTextureRect();
 			_gridPieces[row][column].setTexture(_ChessPieces);
@@ -300,6 +341,17 @@ namespace ChessGUI
 
 			_gridArray[row][column] = _gridArray[_chosenPiece.x][_chosenPiece.y];
 			_gridArray[_chosenPiece.x][_chosenPiece.y] = EMPTY_PIECE;
+
+			if (_gridArray[row][column] == WHITE_PAWN && row == 0) {
+				int type = GUIPromotion(row, column);
+				chessLogic->promoteTo(row, column, type);
+			}
+
+			if (_gridArray[row][column] == BLACK_PAWN && row == 7) {
+				int type = GUIPromotion(row, column);
+				chessLogic->promoteTo(row, column, type);
+			}
+
 
 			if (movingColor == _playerColor) {
 				_gameState = STATE_ANOTHER_CHOOSING;
@@ -326,6 +378,11 @@ namespace ChessGUI
 			if (movingColour == _playerColor) _gameState = STATE_LOSE;
 			else if (movingColour == _anotherColor) _gameState = STATE_WON;
 		}
+	}
+
+	int GameState::GUIPromotion(int row, int column) {
+		
+		return 0;
 	}
 
 }

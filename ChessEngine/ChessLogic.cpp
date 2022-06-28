@@ -93,7 +93,7 @@ namespace ChessEngine {
 				else _chessBoard[i][j].attackMap = AuxMap;
 			}
 
-		
+		AddCastlingMoves();
 	}
 
 	void ChessLogic::resetPawnMaps() {
@@ -136,6 +136,16 @@ namespace ChessEngine {
 					legalMovesGUI.push_back(std::make_pair(_i, _j));
 
 		return legalMovesGUI;
+	}
+
+	void ChessLogic::promoteTo(int i, int j, int type) {
+		_chessBoard[i][j].type = type;
+		
+		castlingCheck(i, j);
+		resetMaps();
+		generationCheckMaps();
+		castlingCheck(i, j);
+		resetMaps();
 	}
 
 	int ChessLogic::pieceColour(int piece) {
@@ -182,17 +192,56 @@ namespace ChessEngine {
 	}
 
 	void ChessLogic::makeMove(int fromi, int fromj, int toi, int toj) {
-		if (_chessBoard[toi][toj].type == WHITE_KING) WhiteKingPos = std::make_pair(toi, toj);
-		if (_chessBoard[toi][toj].type == BLACK_KING) BlackKingPos = std::make_pair(toi, toj);
+		castlingMove = std::make_pair(-1, -1);
+		if (_chessBoard[fromi][fromj].type == WHITE_KING) {
+			WhiteKingPos = std::make_pair(toi, toj);
+			if (abs(toj - fromj) == 2) PerformCastlingMoves(toi, toj);
+		}
+		if (_chessBoard[fromi][fromj].type == BLACK_KING) {
+			BlackKingPos = std::make_pair(toi, toj);
+			if (abs(toj - fromj) == 2) PerformCastlingMoves(toi, toj);
+		}
+
 		enPassantCheck(fromi, fromj, toi, toj);
+
 		_chessBoard[toi][toj] = _chessBoard[fromi][fromj];
 		_chessBoard[fromi][fromj].type = EMPTY_PIECE;
 		_chessBoard[fromi][fromj].attackMap.reset();
 		whoseTurn *= -1;
 
+		castlingCheck(toi, toj, fromi, fromj);
 		resetMaps();
 		generationCheckMaps();
+
+		castlingCheck(toi, toj, fromi, fromj);
 		resetMaps();
+	}
+
+	void ChessLogic::PerformCastlingMoves(int toi, int toj) {
+		if (whoseTurn == BLACK) {
+			if (toj == 6) {
+				_chessBoard[0][5].type = BLACK_ROOK;
+				_chessBoard[0][7].type = EMPTY_PIECE;
+				castlingMove = std::make_pair(0, 5);
+			}
+			else if (toj == 2) {
+				_chessBoard[0][3].type = BLACK_ROOK;
+				_chessBoard[0][0].type = EMPTY_PIECE;
+				castlingMove = std::make_pair(0, 3);
+			}
+		}
+		else if (whoseTurn == WHITE) {
+			if (toj == 6) {
+				_chessBoard[7][5].type = WHITE_ROOK;
+				_chessBoard[7][7].type = EMPTY_PIECE;
+				castlingMove = std::make_pair(7, 5);
+			}
+			else if (toj == 2) {
+				_chessBoard[7][3].type = WHITE_ROOK;
+				_chessBoard[7][0].type = EMPTY_PIECE;
+				castlingMove = std::make_pair(7, 3);
+			}
+		}
 	}
 
 	std::bitset<64> ChessLogic::horizontalMoveCreation(int i, int j) {
@@ -391,6 +440,13 @@ namespace ChessEngine {
 		}
 
 		return attackMoves;
+	}
+
+	void ChessLogic::AddCastlingMoves() {
+		if (castlingWhiteShort) _chessBoard[WhiteKingPos.first][WhiteKingPos.second].attackMap.set(7 * 8 + 6);
+		if (castlingWhiteLong) _chessBoard[WhiteKingPos.first][WhiteKingPos.second].attackMap.set(7 * 8 + 2);
+		if (castlingBlackShort) _chessBoard[BlackKingPos.first][BlackKingPos.second].attackMap.set(6);
+		if (castlingBlackLong) _chessBoard[BlackKingPos.first][BlackKingPos.second].attackMap.set(2);
 	}
 
 	std::bitset<64> ChessLogic::pawnMoveCreation(int i, int j) {
@@ -602,5 +658,116 @@ namespace ChessEngine {
 			}
 		}
 
+	}
+
+	void ChessLogic::castlingCheck(int toi, int toj, int fromi, int fromj) {
+		castlingBlackLong = false;
+		castlingBlackShort = false;
+		castlingWhiteLong = false;
+		castlingWhiteShort = false;
+		std::bitset<64> whiteAttackMap;
+		std::bitset<64> blackAttackMap;
+
+		for (int checki = 0; checki < 8; checki++) {
+			for (int checkj = 0; checkj < 8; checkj++) {
+				if (pieceColour(_chessBoard[checki][checkj].type) == WHITE)
+					whiteAttackMap |= _chessBoard[checki][checkj].attackMap;
+				else if (pieceColour(_chessBoard[checki][checkj].type) == BLACK)
+					blackAttackMap |= _chessBoard[checki][checkj].attackMap;
+			}
+		}
+
+		if (_chessBoard[toi][toj].type == BLACK_KING) {
+			castlingBlackLongF = false;
+			castlingBlackShortF = false;
+		}
+		if (_chessBoard[toi][toj].type == WHITE_KING) {
+			castlingWhiteLongF = false;
+			castlingWhiteShortF = false;
+		}
+
+		if (!whiteAttackMap.test(BlackKingPos.first * 8 + BlackKingPos.second)) {
+			if (castlingBlackLongF) {
+				if (_chessBoard[toi][toj].type == BLACK_ROOK && fromi == 0 && fromj == 0) {
+					castlingBlackLongF = false;
+				}
+				else {
+					castlingBlackLong = true;
+					for (int j = BlackKingPos.second - 1; j > 0; j--) {
+						if (isEnemy(BlackKingPos.first, j, BlackKingPos.first, BlackKingPos.second) || isAlly(BlackKingPos.first, j, BlackKingPos.first, BlackKingPos.second)) {
+							castlingBlackLong = false;
+							break;
+						}
+
+						if (whiteAttackMap.test(BlackKingPos.first * 8 + j)) {
+							castlingBlackLong = false;
+							break;
+						}
+					}
+				}
+			}
+
+			if (castlingBlackShortF) {
+				if (_chessBoard[toi][toj].type == BLACK_ROOK && fromi == 0 && fromj == 7) {
+					castlingBlackShortF = false;
+				}
+				else {
+					castlingBlackShort = true;
+					for (int j = BlackKingPos.second + 1; j < 7; j++) {
+						if (isEnemy(BlackKingPos.first, j, BlackKingPos.first, BlackKingPos.second) || isAlly(BlackKingPos.first, j, BlackKingPos.first, BlackKingPos.second)) {
+							castlingBlackShort = false;
+							break;
+						}
+
+						if (whiteAttackMap.test(BlackKingPos.first * 8 + j)) {
+							castlingBlackShort = false;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if (!blackAttackMap.test(WhiteKingPos.first * 8 + WhiteKingPos.second)) {
+			if (castlingWhiteLongF) {
+				if (_chessBoard[toi][toj].type == WHITE_ROOK && fromi == 7 && fromj == 0) {
+					castlingWhiteLongF = false;
+				}
+				else {
+					castlingWhiteLong = true;
+					for (int j = WhiteKingPos.second - 1; j > 0; j--) {
+						if (isEnemy(WhiteKingPos.first, j, WhiteKingPos.first, WhiteKingPos.second) || isAlly(WhiteKingPos.first, j, WhiteKingPos.first, WhiteKingPos.second)) {
+							castlingWhiteLong = false;
+							break;
+						}
+
+						if (blackAttackMap.test(WhiteKingPos.first * 8 + j)) {
+							castlingWhiteLong = false;
+							break;
+						}
+					}
+				}
+			}
+
+			if (castlingWhiteShortF) {
+				if (_chessBoard[toi][toj].type == WHITE_ROOK && fromi == 7 && fromj == 7) {
+					castlingWhiteShortF = false;
+				}
+				else {
+					castlingWhiteShort = true;
+					for (int j = WhiteKingPos.second + 1; j < 7; j++) {
+						if (isEnemy(WhiteKingPos.first, j, WhiteKingPos.first, WhiteKingPos.second) || isAlly(WhiteKingPos.first, j, WhiteKingPos.first, WhiteKingPos.second)) {
+							castlingWhiteShort = false;
+							break;
+						}
+
+						if (blackAttackMap.test(WhiteKingPos.first * 8 + j)) {
+							castlingWhiteShort = false;
+							break;
+						}
+					}
+				}
+			}
+		}
 	}
 }
